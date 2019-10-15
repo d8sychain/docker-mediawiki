@@ -159,12 +159,12 @@ Not setup. *Plan to include in a future build*
 
 ### Logo
 
-You can setup your own logo by placing an image named **wiki.png** in ```/config/www/mediawiki/:/assets/wiki.png``` or by placing a file in ```/assets``` and changing [\$wgLogo](https://www.mediawiki.org/wiki/Manual:$wgLogo) in **LocalSetting.php** to this file
+You can setup your own logo by placing an image named **wiki.png** in ```/config/www/mediawiki/resources/assets/wiki.png``` or by placing a file within ```/config/www/mediawiki``` or in ```/assets``` (if using the optional docker volume for storing uploads) and changing [\$wgLogo](https://www.mediawiki.org/wiki/Manual:$wgLogo) in **LocalSetting.php** to this file
 
 
 ### Favicon
 
-You can setup your own favicon by placing an image  **favicon.ico** in ```/config/www/mediawiki/favicon.ico``` or by placing a file in ```/assets``` and changing [\$wgLogo](https://www.mediawiki.org/wiki/Manual:$wgLogo) in **ExtraLocalSetting.php** to this file
+You can setup your own favicon by placing an image  **favicon.ico** in ```/config/www/mediawiki/favicon.ico``` or by placing a file within ```/config/www/mediawiki``` or in ```/assets``` (if using the optional docker volume for storing uploads) and changing [\$wgFavicon](https://www.mediawiki.org/wiki/Manual:$wgLogo) in **ExtraLocalSetting.php** to this file
 
 
 ### Skins
