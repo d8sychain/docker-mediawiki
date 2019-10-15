@@ -1,0 +1,34 @@
+#!/usr/bin/with-contenv bash
+## upgrade Alpine packages
+if [ $APK_UPGRADE == true ]
+	then
+		echo 'upgrading alpine packages'
+		apk update
+		apk upgrade
+fi
+
+
+## upgrade mediawiki step 1
+# test for version control file
+if [ -e $MEDIAWIKI_PATH/VERSION ]
+	then
+		# check if upgrading mediawiki is enabled after version control file check
+		if [ $UPGRADE_MEDIAWIKI == 'enable' ]
+			then
+				# compare docker-mediawiki version to version control file if upgrading is enabled
+				echo mediawiki upgrade enabled
+				if [ "$MEDIAWIKI_BRANCH" != "$(cat $MEDIAWIKI_PATH/VERSION)" ]
+					then
+						current_date=$(date '+%Y%m%d')
+						current_version=mediawiki_"$(cat $MEDIAWIKI_PATH/VERSION)"
+						echo backing up mediawiki to /config/backup/$current_version\_$current_date				
+						mkdir -p /config/backup/$current_version\_$current_date
+						cp -r $MEDIAWIKI_PATH/. /config/backup/$current_version\_$current_date
+						echo upgrade mediawiki to v$MEDIAWIKI_VERSION_MAJOR\.$MEDIAWIKI_VERSION_MINOR
+						rm -f $MEDIAWIKI_PATH/index.php
+						sed -i "s/.*/upgrading to $MEDIAWIKI_BRANCH/" $MEDIAWIKI_PATH/VERSION
+				fi
+			else
+				echo mediawiki upgrade disabled
+		fi
+fi

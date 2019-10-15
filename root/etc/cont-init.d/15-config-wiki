@@ -1,0 +1,82 @@
+#!/usr/bin/with-contenv bash
+
+# make our folders
+mkdir -p \
+	$MEDIAWIKI_PATH \
+	/config/{log/mediawiki,log/parsoid,nginx,php,parsoid} \
+	/run/s6/services/parsoid \
+	/assets/resources
+
+# copy mediawiki files
+if [ -e $MEDIAWIKI_PATH/index.php ]
+	then
+		echo 'mediawiki already installed'
+	else
+		echo 'installing mediawiki...'
+	cp -r $MEDIAWIKI_STORAGE_PATH/. $MEDIAWIKI_PATH
+fi
+
+# include extra mediawiki settings
+if [ -e $MEDIAWIKI_PATH/LocalSettings.php ] && [ ! -e $MEDIAWIKI_PATH/ExtraLocalSettings.php ]
+	then
+		echo 'adding extra settings'
+		cp /defaults/mediawiki/ExtraLocalSettings.php $MEDIAWIKI_PATH/ExtraLocalSettings.php
+		sed -i "$ a # Load extra settings" $MEDIAWIKI_PATH/LocalSettings.php
+		sed -i "$ a require 'ExtraLocalSettings.php';" $MEDIAWIKI_PATH/LocalSettings.php
+fi
+
+# copy config files
+echo 'copying config files...'
+# nginx
+[[ ! -f /config/nginx/nginx.conf ]] && \
+	cp /defaults/nginx/wiki-nginx.conf /config/nginx/nginx.conf && \
+	echo 'default nginx.conf copied'
+# php
+[[ ! -f /config/php/php-local.ini ]] && \
+	cp /defaults/php/php.ini /config/php/php-local.ini && \
+	echo 'default php.ini copied'
+# php-fpm
+[[ ! -f /config/php/www2.conf ]] && \
+	cp /defaults/php/php-fpm.conf /config/php/www2.conf && \
+	echo 'default php-fpm.conf copied'
+# parsoid	
+[[ ! -f /config/parsoid/config.yaml ]] && \
+	cp /defaults/parsoid/config.yaml /config/parsoid/config.yaml && \
+	echo 'default parsoid config.yaml copied'
+[[ ! -f /run/s6/services/parsoid/config.yaml ]] && \
+	cp /config/parsoid/config.yaml 	$PARSOID_HOME/config.yaml && \
+	echo 'parsoid config.yaml copied'
+	
+# set set execute permissions for mediawiki extentions
+chmod a+x $MEDIAWIKI_PATH/extensions/SyntaxHighlight_GeSHi/pygments/pygmentize
+chmod a+x $MEDIAWIKI_PATH/extensions/Scribunto/includes/engines/LuaStandalone/binaries/lua5_1_5_linux_64_generic/lua
+
+# set permissions for mediawiki default directory for file uploads
+chmod -R a=rw $MEDIAWIKI_PATH/images
+
+# set ownership and permissions for mediawiki to use docker volume /assets directory for file uploads
+chown -R abc:abc /assets
+chmod -R a=rw /assets
+
+# create version control file if it does not exist
+		if [ -e $MEDIAWIKI_PATH/VERSION ]
+			then
+				echo 'adding version control'
+				cd $MEDIAWIKI_PATH
+				> VERSION
+				echo $MEDIAWIKI_BRANCH > VERSION
+			else
+				echo 'mediawiki not yet installed'
+		fi
+
+# upgrade mediawiki step 2
+if [ -e $MEDIAWIKI_PATH/VERSION ]
+	then
+		if [ "upgrading to $MEDIAWIKI_BRANCH" == "$(cat $MEDIAWIKI_PATH/VERSION)" ]
+			then
+				echo 'upgrading mediawiki database'
+				cd $MEDIAWIKI_PATH/maintenance
+				php update.php
+				sed -i "s/.*/$MEDIAWIKI_BRANCH/" $MEDIAWIKI_PATH/VERSION
+		fi
+fi

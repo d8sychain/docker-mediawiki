@@ -1,0 +1,3 @@
+#!/usr/bin/with-contenv bash
+cd $PARSOID_HOME
+su -c 'node bin/server.js' $PARSOID_USER
