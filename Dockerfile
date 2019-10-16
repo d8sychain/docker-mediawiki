@@ -44,6 +44,7 @@ RUN \
 		diffutils \
 		ffmpeg \
 		imagemagick \
+		xpdf \
 		nodejs \
 		nodejs-npm \
 		python2 \
