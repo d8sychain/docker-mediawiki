@@ -6,6 +6,10 @@ README
 
 [![MediaWiki](https://raw.githubusercontent.com/d8sychain/docker-mediawiki/master/assets/mediawiki-icon.png)](https://www.mediawiki.org)
 
+Status: Beta
+
+*I am considering this docker as beta for the time being. Mediawiki itself is fully functional and able to be used in a production environment, however, I have not tested / used all the extensions that are included with the core Mediawiki repository. Some of the extensions may require additional libraries and/or additional configurations to function. See the documentation for a particular extension.*
+
 Docker container for [MediaWiki](https://www.mediawiki.org) running under [Nginx](https://www.nginx.com) and [PHP-FPM](https://php-fpm.org/) with [Parsoid](https://www.mediawiki.org/wiki/Parsoid) service.
 
 Based on LinuxServer.io custom base image [lsiobase/nginx:3.10](https://hub.docker.com/r/lsiobase/nginx/tags?page=1&name=3.10) built with Alpine linux, nginx and S6 overlay.
@@ -20,6 +24,7 @@ For a basic understanding of docker please refer to the official [documentation]
 * [Features](#features)
     * [Extensions](#extensions)
 * [Changelog](#changelog)
+* [Known Issues](#known-issues)
 * [Usage](#usage)
     * [With MySQL](#with-mysql)
 * [HTTPS](#https)
@@ -94,6 +99,11 @@ Extensions that are part of the core Mediawiki are marked.
 ## Changelog
 
 See [CHANGELOG.md](https://github.com/d8sychain/docker-mediawiki/blob/master/docs/CHANGELOG.md) for information about the latest changes.
+
+
+## Known Issues
+
+See [KNOWNISSUES.md](https://github.com/d8sychain/docker-mediawiki/blob/master/docs/KNOWNISSUES.md) for information about current issues.
 
 
 ## Usage

@@ -1,0 +1,5 @@
+KNOWNISSUES
+
+# Docker MediaWiki
+
+* none
