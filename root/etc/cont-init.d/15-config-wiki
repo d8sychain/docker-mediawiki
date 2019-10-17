@@ -59,7 +59,7 @@ chown -R abc:abc /assets
 chmod -R a=rw /assets
 
 # create version control file if it does not exist
-		if [ -e $MEDIAWIKI_PATH/VERSION ]
+		if [ ! -e $MEDIAWIKI_PATH/VERSION ]
 			then
 				echo 'adding version control'
 				cd $MEDIAWIKI_PATH
