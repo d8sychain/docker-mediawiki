@@ -132,7 +132,7 @@ docker run --name=mediawiki_wiki \
 -d d8sychain/mediawiki
 ```
 
-You can also include ```-v /path/to/store/file/uploads:/assets``` to use an alternet storage location for file uploads in your wiki
+You can also include `-v /path/to/store/file/uploads:/assets` to use an alternet storage location for file uploads in your wiki
 
 You should be able to browse your wiki at [http://localhost:9090](http://localhost:9090).
 
@@ -150,10 +150,10 @@ Recommend using Linuxserver.io Let's Encrypt [docker](https://hub.docker.com/r/l
 ### General
 
 * Use the mediawiki installer to generate **LocalSetting.php** and save it to /var/mediawiki/www/mediawiki
-* Restart the mediawiki container ```docker restart mediawiki_wiki ```
+* Restart the mediawiki container `docker restart mediawiki_wiki `
 * Make any customizations in **ExtraLocalSetting.php** *will be added after **LocalSetting.php** is saved*
 
-From here on ```/config``` and ```/assets``` will refer to the paths that you mapped to these volumes.
+From here on `/config` and `/assets` will refer to the paths that you mapped to these volumes.
 
 
 ### Uploads
@@ -169,12 +169,12 @@ Not setup. *Plan to include in a future build*
 
 ### Logo
 
-You can setup your own logo by placing an image named **wiki.png** in ```/config/www/mediawiki/resources/assets/wiki.png``` or by placing a file within ```/config/www/mediawiki``` or in ```/assets``` (if using the optional docker volume for storing uploads) and changing [\$wgLogo](https://www.mediawiki.org/wiki/Manual:$wgLogo) in **LocalSetting.php** to this file
+You can setup your own logo by placing an image named **wiki.png** in `/config/www/mediawiki/resources/assets/wiki.png` or by placing a file within `/config/www/mediawiki` or in `/assets` (if using the optional docker volume for storing uploads) and changing [\$wgLogo](https://www.mediawiki.org/wiki/Manual:$wgLogo) in **LocalSetting.php** to this file
 
 
 ### Favicon
 
-You can setup your own favicon by placing an image  **favicon.ico** in ```/config/www/mediawiki/favicon.ico``` or by placing a file within ```/config/www/mediawiki``` or in ```/assets``` (if using the optional docker volume for storing uploads) and changing [\$wgFavicon](https://www.mediawiki.org/wiki/Manual:$wgLogo) in **ExtraLocalSetting.php** to this file
+You can setup your own favicon by placing an image  **favicon.ico** in `/config/www/mediawiki/favicon.ico` or by placing a file within `/config/www/mediawiki` or in `/assets` (if using the optional docker volume for storing uploads) and changing [\$wgFavicon](https://www.mediawiki.org/wiki/Manual:$wgLogo) in **ExtraLocalSetting.php** to this file
 
 
 ### Skins
@@ -185,44 +185,44 @@ The default skins are packaged with mediawiki:
 * timeless
 * vector
 
-You can add more [skins](https://www.mediawiki.org/wiki/Manual:Skins) by downloading and adding them to ```/confing/www/mediawiki/skins``` and enable as per the skin's installation instructions. Add additional configurations to ```/config/www/mediawiki/ExtraLocalSettings.php```
+You can add more [skins](https://www.mediawiki.org/wiki/Manual:Skins) by downloading and adding them to `/confing/www/mediawiki/skins` and enable as per the skin's installation instructions. Add additional configurations to `/config/www/mediawiki/ExtraLocalSettings.php`
 
 
 ### Additional Extensions
 
-You can add more [extensions](https://www.mediawiki.org/wiki/Manual:Skins) by downloading and adding them to ```/confing/www/mediawiki/extensions``` and enable as per the skin's installation instructions. Add additional configurations to ```/config/www/mediawiki/ExtraLocalSettings.php```
+You can add more [extensions](https://www.mediawiki.org/wiki/Manual:Skins) by downloading and adding them to `/confing/www/mediawiki/extensions` and enable as per the skin's installation instructions. Add additional configurations to `/config/www/mediawiki/ExtraLocalSettings.php`
 
 
 ### Configuration files
 
 Beside the docker like configuration with environment variables you still can use your own full `LocalSettings.php` file.
 
-- NGINX ```/config/nginx/wiki-nginx.conf```
-- PHP-FPM ```/config/php/php-fmp.conf```
-- PHP ```/config/php/php.ini```
-- Parsoid ```/config/parsoid/config.yaml```
-- Mediawiki ```/config/www/mediawiki/LocalSettings.php```
-- Mediawiki ```/config/www/mediawiki/ExtraLocalSettings.php```
+- NGINX `/config/nginx/wiki-nginx.conf`
+- PHP-FPM `/config/php/php-fmp.conf`
+- PHP `/config/php/php.ini`
+- Parsoid `/config/parsoid/config.yaml`
+- Mediawiki `/config/www/mediawiki/LocalSettings.php`
+- Mediawiki `/config/www/mediawiki/ExtraLocalSettings.php`
 
 ### Performance
 
 The container has some performance related configuration options. If you have more advanced needs you can override the configurations by editing configuration files. If you accidently break one of the configuration files, just delete it and restart the container and it will automatically be replaced with the default.
 
-- NGINX ```/config/nginx/wiki-nginx.conf```
+- NGINX `/config/nginx/wiki-nginx.conf`
     - line 3 `worker_processes 4` 
-- PHP-FPM ```/config/php/php-fmp.conf```
+- PHP-FPM `/config/php/php-fmp.conf`
     - line 23 `pm = dynamic`
     - line 24 `pm.max_children = 75`
     - line 25 `pm.start_servers = 1`
     - line 26 `pm.min_spare_servers = 1`
     - line 27 `pm.max_spare_servers = 20`
     - line 28 `pm.max_requests = 500`
-- Parsoid ```/config/parsoid/config.yaml```
+- Parsoid `/config/parsoid/config.yaml`
     - line 2 `num_workers: 4`
 
 ## Upgrading
 
-If using `latest`, it will have the newest packages installed. See ```/config/log/package.list``` for a list of installed packages and thier versions. As mediawiki continues to develope newer versions of the docker image will be released. A newer docker image may contain a newer version of mediawiki and the image will automatically backup mediawiki, upgrade it and the database, if `UPGRADE_MEDIAWIKI = enable`. The default is set to disable. It is highly recommended that you **backup your database** before enabling this.
+If using `latest`, it will have the newest packages installed. See `/config/log/package.list` for a list of installed packages and thier versions. As mediawiki continues to develope newer versions of the docker image will be released. A newer docker image may contain a newer version of mediawiki and the image will automatically backup mediawiki, upgrade it and the database, if `UPGRADE_MEDIAWIKI = enable`. The default is set to disable. It is highly recommended that you **backup your database** before enabling this.
 
 
 
