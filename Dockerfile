@@ -44,6 +44,7 @@ RUN \
 		diffutils \
 		ffmpeg \
 		imagemagick \
+		poppler-utils \
 		nodejs \
 		nodejs-npm \
 		python2 \

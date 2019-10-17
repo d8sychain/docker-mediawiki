@@ -7,7 +7,7 @@
   <MyIP/>
   <Shell>sh</Shell>
   <Privileged>false</Privileged>
-  <Support>https://forums.unraid.net/topic/</Support>
+  <Support>https://forums.unraid.net/topic/84304-support-d8sychain-mediawiki/</Support>
   <Project>https://www.mediawiki.org</Project>
   <Overview>MediaWiki with WYSIWYG VisualEditor extension and Parsoid service. Built with Alpine, S6-overlay, NGINX, PHP-FPM with PHP 7.3, NodeJS, along with other extensions.</Overview>
   <Category>Cloud: Productivity: Tools: Network:Web Status:Beta</Category>
