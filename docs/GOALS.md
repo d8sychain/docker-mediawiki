@@ -7,6 +7,7 @@ GOALS
 - Improve ExtraLocalSetting.php
 	- Move extension configurations into thier own file
 	- Possibly move other setting into thier own file as well
+- An automatic extension installer
 - Test all extensions
 	- [ExtensionDistributor](https://www.mediawiki.org/wiki/Extension:ExtensionDistributor)
 	- [Interwiki](https://www.mediawiki.org/wiki/Extension:Interwiki) **core*
