@@ -3,6 +3,22 @@ CHANGELOG
 # Docker MediaWiki
 
 
+## 2019-10-21 1.33-3
+
+* Removed extension **ExtensionDistributor** and associated configurations
+* Developed and added **ExtensionManager** to simply adding or removing extensions
+* Updated upgrade scripts to tie in with **ExtensionManager**
+* Split **ExtraLocalSettings.php** into two different files **LocalSettings_Extras.php** and **LocalSettings_Extensions.php**
+* Minor changes to **LocalSettings_Extras.php** and **LocalSettings_Extensions.php**
+* Fixed **nginx.conf** where if no file was specified in the URI it would return 403 instead of an internal redirect to index.php
+* Several edits to container startup scrips
+* Update **Upgrade** script to backup SQLite database if using the default database directory
+* Updated README to reflect changes to use
+* Added additional information to README
+* Corrected several README typos
+* Updated GOALS
+
+
 ## 2019-10-15 1.33-2
 
 * Added poppler-utils fix for extension PdfHandler
