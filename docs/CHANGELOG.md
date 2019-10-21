@@ -5,6 +5,11 @@ CHANGELOG
 
 ## 2019-10-21 1.33-3
 
+* *Changes to 1.33-3 from 1.33-2 may cause issues if updating the docker image*
+	If you have completed the installer already and started using MediaWiki
+	* Delete the following files: **/config/www/mediawiki/ExtraLocalSettings.php** and **/config/nginx/nginx.conf**
+	* Remove line 163 **# Load extra settings** and line 164 **require ExtraLocalSettings.php';** from **LocalSettings.php**
+	* Restart the container.
 * Removed extension **ExtensionDistributor** and associated configurations
 * Developed and added **ExtensionManager** to simply adding or removing extensions
 * Updated upgrade scripts to tie in with **ExtensionManager**
