@@ -54,8 +54,8 @@ The main focus of this docker was to build it in a way that makes it more conven
 ## Supported Tags
 
 - `latest` [(Dockerfile)](https://github.com/d8sychain/docker-mediawiki/blob/master/Dockerfile)
-- `1.33` [(Dockerfile)]((https://github.com/d8sychain/docker-mediawiki/blob/1.33/Dockerfile))
-- `1.34` [Expected late Nov '19]((https://github.com/d8sychain/docker-mediawiki/blob/1.34/Dockerfile))
+- `1.33` [(Dockerfile)](https://github.com/d8sychain/docker-mediawiki/blob/1.33/Dockerfile)
+- `1.34` [Expected late Nov '19](https://github.com/d8sychain/docker-mediawiki/blob/1.34/Dockerfile)
 
 
 ## Features
