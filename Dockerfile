@@ -17,6 +17,8 @@ ENV MEDIAWIKI_VERSION_BUGFIX=0
 ENV MEDIAWIKI_BRANCH=REL$MEDIAWIKI_VERSION_MAJOR\_$MEDIAWIKI_VERSION_MINOR
 ENV MEDIAWIKI_STORAGE_PATH=/defaults/www/mediawiki
 ENV MEDIAWIKI_PATH=/config/www/mediawiki
+ENV MEDIAWIKI_EXTENSION_PATH=$MEDIAWIKI_PATH/extensions
+ENV EXTENSION_MANAGER_PATH=/config/ExtensionManager
 ENV UPGRADE_MEDIAWIKI=disable
 # copy local files
 COPY root/ /
@@ -79,15 +81,6 @@ RUN \
 			git submodule update --init && \
 			rm -rf .git* && \
 	echo "**** download mediawiki extensions ****" && \
-		echo "**** download ExtensionDistributor extension ****" && \
-			mkdir -p $MEDIAWIKI_STORAGE_PATH/extensions/ExtensionDistributor && \
-			git clone \
-				--branch ${MEDIAWIKI_BRANCH} \
-				--single-branch \
-				--depth 1 \
-				https://gerrit.wikimedia.org/r/mediawiki/extensions/ExtensionDistributor \
-				$MEDIAWIKI_STORAGE_PATH/extensions/ExtensionDistributor && \
-			rm -rf $MEDIAWIKI_STORAGE_PATH/extensions/ExtensionDistributor/.git* && \
 		echo "**** download UploadWizard extension ****" && \
 			mkdir -p $MEDIAWIKI_STORAGE_PATH/extensions/UploadWizard && \
 			git clone \

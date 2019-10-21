@@ -8,21 +8,28 @@ mkdir -p \
 	/assets/resources
 
 # copy mediawiki files
-if [ -e $MEDIAWIKI_PATH/index.php ]
+if [ ! -e $MEDIAWIKI_PATH/index.php ]
 	then
-		echo 'mediawiki already installed'
-	else
 		echo 'installing mediawiki...'
-	cp -r $MEDIAWIKI_STORAGE_PATH/. $MEDIAWIKI_PATH
+		cp -r $MEDIAWIKI_STORAGE_PATH/. $MEDIAWIKI_PATH
 fi
 
 # include extra mediawiki settings
-if [ -e $MEDIAWIKI_PATH/LocalSettings.php ] && [ ! -e $MEDIAWIKI_PATH/ExtraLocalSettings.php ]
+if [ -e $MEDIAWIKI_PATH/LocalSettings.php ] && [ ! -e $MEDIAWIKI_PATH/LocalSettings_Extras.php ]
 	then
 		echo 'adding extra settings'
-		cp /defaults/mediawiki/ExtraLocalSettings.php $MEDIAWIKI_PATH/ExtraLocalSettings.php
+		cp /defaults/mediawiki/LocalSettings_Extras.php $MEDIAWIKI_PATH/LocalSettings_Extras.php
 		sed -i "$ a # Load extra settings" $MEDIAWIKI_PATH/LocalSettings.php
-		sed -i "$ a require 'ExtraLocalSettings.php';" $MEDIAWIKI_PATH/LocalSettings.php
+		sed -i "$ a require 'LocalSettings_Extras.php';" $MEDIAWIKI_PATH/LocalSettings.php
+fi
+
+# include extension mediawiki settings
+if [ -e $MEDIAWIKI_PATH/LocalSettings.php ] && [ ! -e $MEDIAWIKI_PATH/LocalSettings_Extensions.php ]
+	then
+		echo 'adding extension settings'
+		cp /defaults/mediawiki/LocalSettings_Extensions.php $MEDIAWIKI_PATH/LocalSettings_Extensions.php
+		sed -i "$ a # Load extension settings" $MEDIAWIKI_PATH/LocalSettings.php
+		sed -i "$ a require 'LocalSettings_Extensions.php';" $MEDIAWIKI_PATH/LocalSettings.php
 fi
 
 # copy config files
@@ -58,25 +65,4 @@ chmod -R a=rw $MEDIAWIKI_PATH/images
 chown -R abc:abc /assets
 chmod -R a=rw /assets
 
-# create version control file if it does not exist
-		if [ ! -e $MEDIAWIKI_PATH/VERSION ]
-			then
-				echo 'adding version control'
-				cd $MEDIAWIKI_PATH
-				> VERSION
-				echo $MEDIAWIKI_BRANCH > VERSION
-			else
-				echo 'mediawiki not yet installed'
-		fi
 
-# upgrade mediawiki step 2
-if [ -e $MEDIAWIKI_PATH/VERSION ]
-	then
-		if [ "upgrading to $MEDIAWIKI_BRANCH" == "$(cat $MEDIAWIKI_PATH/VERSION)" ]
-			then
-				echo 'upgrading mediawiki database'
-				cd $MEDIAWIKI_PATH/maintenance
-				php update.php
-				sed -i "s/.*/$MEDIAWIKI_BRANCH/" $MEDIAWIKI_PATH/VERSION
-		fi
-fi

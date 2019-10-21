@@ -2,14 +2,15 @@ GOALS
 
 # Docker MediaWiki
 
-- Add SQLite support
-- Add PostgreSQL support
-- Improve ExtraLocalSetting.php
-	- Move extension configurations into thier own file
-	- Possibly move other setting into thier own file as well
-- An automatic extension installer
+- ~~Add SQLite support (tested)~~
+- Add PostgreSQL support (added, not tested)
+- ~~Improve ExtraLocalSetting.php~~
+	- ~~Move extension configurations into thier own file~~
+	- ~~Possibly move other setting into thier own file as well~~
+- ~~An automatic extension installer (evolved into ExtensionManager)~~
+- Improve/Simplify file uploads storage
 - Test all extensions
-	- [ExtensionDistributor](https://www.mediawiki.org/wiki/Extension:ExtensionDistributor)
+- Configure Email use
 	- [Interwiki](https://www.mediawiki.org/wiki/Extension:Interwiki) **core*
 	- [CiteThisPage](https://www.mediawiki.org/wiki/Extension:CiteThisPage)  **core*
 	- [Replace Text](https://www.mediawiki.org/wiki/Extension:Replace_Text)  **core*
@@ -28,5 +29,5 @@ GOALS
 	- [TemplateData](https://www.mediawiki.org/wiki/Extension:TemplateData)
 	- [TemplateStyles](https://www.mediawiki.org/wiki/Extension:TemplateStyles)
 	- ~~[PdfHandler](https://www.mediawiki.org/wiki/Extension:PdfHandler)~~
-	- [MultimediaViewer](https://www.mediawiki.org/wiki/Extension:MultimediaViewer)
+	- ~~[MultimediaViewer](https://www.mediawiki.org/wiki/Extension:MultimediaViewer)~~
 	- ~~[UploadWizard](https://www.mediawiki.org/wiki/Extension:UploadWizard)~~  **core*
