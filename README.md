@@ -236,6 +236,10 @@ From here on `/config` and `/assets` will refer to the host path that you mapped
 
 ### Configuration files
 
+If any of these files, except for **LocalSettings.php**, becomes mis-configured and you can't fix it, just delete it and restart the container and the default file will be loaded back.
+
+**LocalSettings.php** is created by the MediaWiki installer.
+
 - NGINX `/config/nginx/nginx.conf`
 - PHP-FPM `/config/php/php-fmp.conf`
 - PHP `/config/php/php.ini`
@@ -284,7 +288,7 @@ They include:
 
 ### E-Mail
 
-Not setup/tested. May be missing necessary libs *Plan to include in a future build*
+Not setup/tested. May be missing necessary libs or it may just work as is. *Plan to include in a future build*
 
 
 ### Logo
@@ -330,11 +334,13 @@ The container has some performance related configuration options. If you have mo
 
 ## Managing Extensions With ExtensionManager
 
-*This does not work for all extensions especially older ones. If you add an extension using ExtensionManager and your wiki site won't load, just use ExtensionManager to remove it and try adding it manually per the extension's documentation*
+*This does not work for all extensions especially older ones. Check the extension documentation first, if the extension uses `require_once "$IP/extensions/ExtensionName/ExtensionName.php";` to load it, then do not use ExtensionManager, instead, download the the extension manually to `/config/www/mediawiki/extensions/ExtensionName`. If you add an extension using ExtensionManager and your wiki site won't load, just use ExtensionManager to remove it and try adding it manually per the extension's documentation. I may expand the functionality of ExtensionManager later on to make it usable with older extensions.*
 
 This docker includes scripts for easing the adding and removal of extensions.
 
 ExtensionManager can remove extensions that were not added using ExtensionManager, for example, if you wanted to remove one of the core extensions included with MediaWiki
+
+### Using ExtensionManager
 
 Edit file `/config/ExtensionManager/MANAGER`, add the operator **+** or **-** and extension's name per line.
 
@@ -388,15 +394,13 @@ ExtensionManager maintains a list of all currently added extensions by Extension
 
 When upgrading to a newer version of MediaWiki with newer docker images, the upgrade scripts will automatically upgrade your additional extensions based on this list.
 
-No further action is needed.
-
 ### Repairing or Manually Upgrading An Extension
 
 You can remove and add the same extension at the same time.
 
 This removes all of the extension's files and re-adds them.
 
-It will not effect any additional configurations for the extension that you may have added or set.
+It will not effect any additional configurations for the extension that you may have added or set in **LocalSettings_Extensions.php**.
 
 Use `-` and the extension's name then
 

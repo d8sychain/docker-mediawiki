@@ -9,8 +9,8 @@ GOALS
 	- ~~Possibly move other setting into thier own file as well~~
 - ~~An automatic extension installer (evolved into ExtensionManager)~~
 - Improve/Simplify file uploads storage
+- Configure/test Email use
 - Test all extensions
-- Configure Email use
 	- [Interwiki](https://www.mediawiki.org/wiki/Extension:Interwiki) **core*
 	- [CiteThisPage](https://www.mediawiki.org/wiki/Extension:CiteThisPage)  **core*
 	- [Replace Text](https://www.mediawiki.org/wiki/Extension:Replace_Text)  **core*
