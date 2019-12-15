@@ -56,7 +56,7 @@ The main focus of this docker was to build it in a way that makes it more conven
 
 - `latest` Latest push to [(Master Branch)](https://github.com/d8sychain/docker-mediawiki/tree/master)
 - `1.33` Latest push to [(1.33 Branch)](https://github.com/d8sychain/docker-mediawiki/tree/1.33)
-- `1.34` Latest push to [(1.34 Branch)Expected late Dec '19](https://github.com/d8sychain/docker-mediawiki/tree/1.34)
+- `1.34` Latest push to [(1.34 Branch)](https://github.com/d8sychain/docker-mediawiki/tree/1.34) *Expected late Dec '19*
 - `vX.Y.Z-dbN` [Build Releases](https://github.com/d8sychain/docker-mediawiki/releases)
 
 ## Features
