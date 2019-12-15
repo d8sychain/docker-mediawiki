@@ -45,26 +45,35 @@ $wgScriptExtension = ".php";
 #$wgGroupPermissions['*']['read'] = false;
 #$wgGroupPermissions['*']['createaccount'] = false;
 #$wgGroupPermissions['*']['edit'] = false;
+// Gadget extension
+$wgGroupPermissions['interface-admin']['gadgets-edit'] = true;
+$wgGroupPermissions['interface-admin']['gadgets-definition-edit'] = true;
 
 
 ## File Uploads
 ## See https://www.mediawiki.org/wiki/Manual:Configuring_file_uploads
-#$wgEnableUploads = true; # Enable uploads, uncomment this if you didn't enable file uploads during the MediaWiki installer and want to enable now
-// Uncomment below to use docker volume /assets upload path or set your own path
-#$wgUploadPath = "/assets";
-#$wgUploadDirectory = "/assets";
-// Maximum file upload size
-// If you increase this valve you must also update the config/php/php-local.ini file
-#$wgUploadSizeWarning = 1073741824; // 1024*1024*1024 = 1 GB
-#$wgMaxUploadSize = 1073741824; // 1024*1024*1024 = 1 GB
-// Allowed file extension types
+#$wgEnableUploads = true;											// Enable uploads
+#$wgUploadPath = "/assets";											// Alternet path to file uploads. The URL of the upload directory.
+#$wgUploadDirectory = "/assets";									// Alternet path to file uploads. The file system path of the folder where uploaded files will be stored.
+#$wgUploadSizeWarning = 1073741824; // 1024*1024*1024 = 1 GB		// Maximum file upload size. If you increase this valve you must also update the config/php/php-local.ini file
+#$wgMaxUploadSize = 1073741824; // 1024*1024*1024 = 1 GB			// Maximum file upload size. If you increase this valve you must also update the config/php/php-local.ini file
 #$wgFileExtensions = array( 'png', 'gif', 'jpg', 'jpeg', 'doc',
 #    'xls', 'mpp', 'pdf', 'ppt', 'tiff', 'bmp', 'docx', 'xlsx',
 #    'pptx', 'ps', 'odt', 'ods', 'odp', 'odg'
-#);
-// Uploading directly from a URLs
-#$wgAllowCopyUploads = true;
-#$wgCopyUploadsFromSpecialUpload = true;
+#);																	// Allowed file extension types
+#$wgAllowCopyUploads = true;										// Uploading directly from a URLs
+#$wgCopyUploadsFromSpecialUpload = true;							// Uploading directly from a URLs
+
+
+## Email
+$wgSMTP = [
+    'host'     => "mail.example.com",	// Could also be an IP address. Where the SMTP server is located
+    'IDHost'   => "example.com",      	// Generally this will be the domain name of your website (aka mywiki.org)
+    'port'     => 25,                 	// Port to use when connecting to the SMTP server
+    'auth'     => true,               	// Should we use SMTP authentication (true or false)
+    'username' => "my_user_name",     	// Username to use for SMTP authentication (if being used)
+    'password' => "my_password"       	// Password to use for SMTP authentication (if being used)
+];
 
 
 ## Copyright
@@ -76,6 +85,13 @@ $wgScriptExtension = ".php";
 #$wgRightsUrl = "";
 #$wgRightsText = "";
 #$wgRightsIcon = "";
+
+
+## Default User Options https://www.mediawiki.org/wiki/Manual:$wgDefaultUserOptions
+## Examples with default values
+$wgDefaultUserOptions['watchdefault'] = 1;			// Add pages the user edits to their watchlist, checking the "Watch this page" by default on all edited pages.
+$wgDefaultUserOptions['date'] = 'default';			// Date format. Options: 'default', 'mdy', 'dmy', 'ymd', 'ISO 8601', 'persian'
+$wgDefaultUserOptions['timecorrection'] = '0';		// A fixed timezone offset or ZoneInfo zone
 
 
 ## Uncomment this to disable output compression

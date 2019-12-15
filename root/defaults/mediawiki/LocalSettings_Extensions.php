@@ -14,6 +14,9 @@ if ( !defined( 'MEDIAWIKI' ) ) {
 ### Extension Configuration Settings ###
 
 
+# Maintenance #https://www.mediawiki.org/wiki/Extension:Maintenance
+$wgGroupPermissions['sysop']['maintenance'] = true;
+
 ## UploadWizard https://www.mediawiki.org/wiki/Extension:UploadWizard
 ##wfLoadExtension( 'UploadWizard' );
 #$wgApiFrameOptions = 'SAMEORIGIN'; // Needed to make UploadWizard work in IE, see https://phabricator.wikimedia.org/T41877
@@ -34,8 +37,11 @@ $wgUploadWizardConfig = array(
 	'fileExtensions' => $wgFileExtensions // omitting this may cause errors
 );
 
+## WikiEditor https://www.mediawiki.org/wiki/Extension:WikiEditor
+$wgDefaultUserOptions['usebetatoolbar'] = 1; // user option provided by WikiEditor extension
+
 ## VisualEditor https://www.mediawiki.org/wiki/Extension:VisualEditor
-##wfLoadExtension('VisualEditor');
+#wfLoadExtension('VisualEditor');
 $wgDefaultUserOptions['visualeditor-enable'] = 1;
 $wgVirtualRestConfig['modules']['parsoid'] = array(
 	'url' => 'http://localhost:8142',
