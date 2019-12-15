@@ -1,0 +1,83 @@
+#!/usr/bin/with-contenv bash
+
+mkdir -p $EXTENSION_MANAGER_PATH
+cp /etc/cont-init.d/17-extension-manager $EXTENSION_MANAGER_PATH/run
+
+# setup ExtensionManager
+if [ 0 -eq $(grep -c ExtensionManager: $MEDIAWIKI_PATH/LocalSettings.php) ] && [ -e $MEDIAWIKI_PATH/LocalSettings.php ]
+	then
+		#Add statement if not present and LocalSettings.php has been generated
+		cat <<EOT >> $MEDIAWIKI_PATH/LocalSettings.php
+
+# Additional Enabled extensions.
+# The following extensions were automatically enabled by ExtensionManager:
+# Check specific extension documentation for more details.
+# Add any additional extension configurations to LocalSettings_Extensions.php
+
+EOT
+fi
+		
+if [ -e $EXTENSION_MANAGER_PATH/MANAGER ] && [ -e $EXTENSION_MANAGER_PATH/INSTALLED ]
+	then
+		until [ "$(cat $EXTENSION_MANAGER_PATH/MANAGER)" == "" ] || [ "$EXTENSION_STATUS" == "error" ]
+			do
+				EXTENSION_STATUS=$(sed -n 1p $EXTENSION_MANAGER_PATH/MANAGER) && \
+				EXTENSION="${EXTENSION_STATUS//[\+\-\*]}"
+				# add ($wfLoadExtension) loaded extension
+				if [ $EXTENSION_STATUS == +$EXTENSION ]
+					then
+						echo "ExtensionManager: installing $EXTENSION extension" && \
+						mkdir -p $MEDIAWIKI_EXTENSION_PATH/$EXTENSION && \
+						git clone \
+							--branch ${MEDIAWIKI_BRANCH} \
+							--single-branch \
+							--depth 1 \
+							https://gerrit.wikimedia.org/r/mediawiki/extensions/$EXTENSION \
+							$MEDIAWIKI_EXTENSION_PATH/$EXTENSION && \
+						cd $MEDIAWIKI_EXTENSION_PATH/$EXTENSION && \
+						git submodule update --init && \
+						rm -rf $MEDIAWIKI_EXTENSION_PATH/$EXTENSION/.git*
+						sed -i "$ a \#https://www.mediawiki.org/wiki/Extension:$EXTENSION" $MEDIAWIKI_PATH/LocalSettings.php && \
+						sed -i "$ a wfLoadExtension( '$EXTENSION' );" $MEDIAWIKI_PATH/LocalSettings.php && \
+						echo $EXTENSION >> $EXTENSION_MANAGER_PATH/INSTALLED && \
+						sed -i 1d $EXTENSION_MANAGER_PATH/MANAGER
+				# add (require_once) loaded extension
+				elif [ $EXTENSION_STATUS == *$EXTENSION ]
+					then
+						echo "ExtensionManager: installing $EXTENSION extension" && \
+						mkdir -p $MEDIAWIKI_EXTENSION_PATH/$EXTENSION && \
+						git clone \
+							--branch ${MEDIAWIKI_BRANCH} \
+							--single-branch \
+							--depth 1 \
+							https://gerrit.wikimedia.org/r/mediawiki/extensions/$EXTENSION \
+							$MEDIAWIKI_EXTENSION_PATH/$EXTENSION && \
+						cd $MEDIAWIKI_EXTENSION_PATH/$EXTENSION && \
+						git submodule update --init && \
+						rm -rf $MEDIAWIKI_EXTENSION_PATH/$EXTENSION/.git*
+						sed -i "$ a \#https://www.mediawiki.org/wiki/Extension:$EXTENSION" $MEDIAWIKI_PATH/LocalSettings.php && \
+						sed -i "$ a require_once \"\$IP/extensions/$EXTENSION/$EXTENSION.php\";" $MEDIAWIKI_PATH/LocalSettings.php && \
+						echo $EXTENSION >> $EXTENSION_MANAGER_PATH/INSTALLED && \
+						sed -i 1d $EXTENSION_MANAGER_PATH/MANAGER
+				# remove extension
+				elif [ $EXTENSION_STATUS == -$EXTENSION ]
+					then
+						echo "ExtensionManager: removing $EXTENSION extension" && \
+						rm -rf $MEDIAWIKI_EXTENSION_PATH/$EXTENSION
+						sed -i "/$EXTENSION/d" $MEDIAWIKI_PATH/LocalSettings.php && \
+						sed -i "/$EXTENSION/d" $EXTENSION_MANAGER_PATH/INSTALLED && \
+						sed -i 1d $EXTENSION_MANAGER_PATH/MANAGER
+				else
+					echo "ExtensionManager: operator not specified"
+					echo "ExtensionManager: correct MANAGER file and try again"
+					EXTENSION_STATUS="error"
+				fi
+			done
+		chown -R abc:abc $MEDIAWIKI_EXTENSION_PATH
+	else
+		# make files if missing
+		echo '' > $EXTENSION_MANAGER_PATH/MANAGER
+		echo '' > $EXTENSION_MANAGER_PATH/INSTALLED
+		chown -R abc:abc $EXTENSION_MANAGER_PATH		
+fi
+
