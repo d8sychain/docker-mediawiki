@@ -39,10 +39,11 @@ The main focus of this docker was to build it in a way that makes it more conven
     * [Configuration files](#configuration-files)
 	* [General](#general)
     * [Uploads](#uploads)
-    * [E-Mail](#e-mail)
+    * [Email](#email)
     * [Logo](#logo)
     * [Favicon](#favicon)
     * [Skins](#skins)
+	* [Default User Options](default-user-options)
     * [Additional Extensions](#additional-extensions)
     * [Performance](#performance)
 * [Managing Extensions With ExtensionManager](#managing-extensions-with-extensionmanager)
@@ -53,14 +54,14 @@ The main focus of this docker was to build it in a way that makes it more conven
 
 ## Supported Tags
 
-- `latest` [(Dockerfile)](https://github.com/d8sychain/docker-mediawiki/blob/master/Dockerfile)
-- `1.33` [(Dockerfile)](https://github.com/d8sychain/docker-mediawiki/blob/1.33/Dockerfile)
-- `1.34` [Expected late Nov '19](https://github.com/d8sychain/docker-mediawiki/blob/1.34/Dockerfile)
-
+- `latest` Latest push to [(Master Branch)](https://github.com/d8sychain/docker-mediawiki/tree/master)
+- `1.33` Latest push to [(1.33 Branch)](https://github.com/d8sychain/docker-mediawiki/tree/1.33)
+- `1.34` Latest push to [(1.34 Branch)Expected late Dec '19](https://github.com/d8sychain/docker-mediawiki/tree/1.34)
+- `vX.Y.Z-dbN` [Build Releases](https://github.com/d8sychain/docker-mediawiki/releases)
 
 ## Features
 
-- [MediaWiki](https://www.mediawiki.org) 1.33.1
+- [MediaWiki](https://www.mediawiki.org) v1.33.1
 - [Nginx](https://www.nginx.com) 1.16.1
 - [PHP-FPM](https://www.php.net/manual/en/book.fpm.php) with [PHP](https://www.mediawiki.org/wiki/Compatibility#PHP) 7.3.8
 - [Parsoid](https://www.mediawiki.org/wiki/Parsoid) running on [NodeJS](https://nodejs.org) 10.16.3
@@ -74,35 +75,55 @@ The main focus of this docker was to build it in a way that makes it more conven
 - Supports [SQLite](https://www.sqlite.org/index.html), [MySQL](https://www.mysql.com/), [MariaDB](https://mariadb.com/), [PostgreSQL](https://www.postgresql.org) databases
 
 ### Extensions
-Extensions that are part of the core MediaWiki are marked.
+MediaWiki comes with a number of extensions bundled in by default since version 1.18.
+Some extentions are additional extensions that were added to this docker.
+Three additional extensions that were added will be bundled in by default in MediaWiki 1.34+
 
 #### Special Pages
-- [Interwiki](https://www.mediawiki.org/wiki/Extension:Interwiki) **core*
-- [CiteThisPage](https://www.mediawiki.org/wiki/Extension:CiteThisPage)  **core*
-- [Replace Text](https://www.mediawiki.org/wiki/Extension:Replace_Text)  **core*
-- [Renameuser](https://www.mediawiki.org/wiki/Extension:Renameuser)  **core*
-- [UserMerge](https://www.mediawiki.org/wiki/Extension:UserMerge)
+- [CiteThisPage](https://www.mediawiki.org/wiki/Extension:CiteThisPage)  (1.21+)
+- [Interwiki](https://www.mediawiki.org/wiki/Extension:Interwiki) (1.21+)
+- [Maintenance](https://www.mediawiki.org/wiki/Extension:Maintenance)  (Additional Extension)
+- [Nuke](https://www.mediawiki.org/wiki/Extension:Nuke)  (1.18+)
+- [Renameuser](https://www.mediawiki.org/wiki/Extension:Renameuser)  (1.18+)
+- [Replace Text](https://www.mediawiki.org/wiki/Extension:Replace_Text)  (1.31+)
+- [UserMerge](https://www.mediawiki.org/wiki/Extension:UserMerge)  (Additional Extension)
 
 #### Editors
-- [CodeEditor](https://www.mediawiki.org/wiki/Extension:CodeEditor)  **core*
-- [WikiEditor](https://www.mediawiki.org/wiki/Extension:WikiEditor)  **core*
-- [VisualEditor](https://www.mediawiki.org/wiki/VisualEditor)
+- [CodeEditor](https://www.mediawiki.org/wiki/Extension:CodeEditor)  (1.31+)
+- [WikiEditor](https://www.mediawiki.org/wiki/Extension:WikiEditor)  (1.18+)
+- [VisualEditor](https://www.mediawiki.org/wiki/VisualEditor)  (Additional Extension)
 
 #### Parser Hooks
-- [CategoryTree](https://www.mediawiki.org/wiki/Extension:CategoryTree)  **core*
-- [Cite](https://www.mediawiki.org/wiki/Extension:Cite)  **core*
-- [ImageMap](https://www.mediawiki.org/wiki/Extension:ImageMap)  **core*
-- [InputBox](https://www.mediawiki.org/wiki/Extension:InputBox)  **core*
-- [ParserFunctions](https://www.mediawiki.org/wiki/Extension:ParserFunctions)  **core*
-- [Scribunto](https://www.mediawiki.org/wiki/Extension:Scribunto)
-- [SyntaxHighlight](https://www.mediawiki.org/wiki/Extension:SyntaxHighlight)  **core*
-- [TemplateData](https://www.mediawiki.org/wiki/Extension:TemplateData)
-- [TemplateStyles](https://www.mediawiki.org/wiki/Extension:TemplateStyles)
+- [CategoryTree](https://www.mediawiki.org/wiki/Extension:CategoryTree)  (1.31+)
+- [Cite](https://www.mediawiki.org/wiki/Extension:Cite)  (1.21+)
+- [ImageMap](https://www.mediawiki.org/wiki/Extension:ImageMap)  (1.21+)
+- [InputBox](https://www.mediawiki.org/wiki/Extension:InputBox)  (1.21+)
+- [ParserFunctions](https://www.mediawiki.org/wiki/Extension:ParserFunctions)  (1.18+)
+- [Poem](https://www.mediawiki.org/wiki/Extension:Poem)  (1.21+)
+- [Scribunto](https://www.mediawiki.org/wiki/Extension:Scribunto)  (additional extension will be bundled in future release MW 1.34+)
+- [SyntaxHighlight](https://www.mediawiki.org/wiki/Extension:SyntaxHighlight)  (1.21+)
+- [TemplateData](https://www.mediawiki.org/wiki/Extension:TemplateData)  (Additional Extension)
+- [TemplateStyles](https://www.mediawiki.org/wiki/Extension:TemplateStyles)  (Additional Extension)
 
 #### Media Handlers
-- [PdfHandler](https://www.mediawiki.org/wiki/Extension:PdfHandler)  **core*
-- [MultimediaViewer](https://www.mediawiki.org/wiki/Extension:MultimediaViewer)  **core*
-- [UploadWizard](https://www.mediawiki.org/wiki/Extension:UploadWizard)  
+- [PdfHandler](https://www.mediawiki.org/wiki/Extension:PdfHandler)  (1.21+)
+
+
+#### Spam Prevention
+- [ConfirmEdit](https://www.mediawiki.org/wiki/Extension:ConfirmEdit)  (1.18+)
+- [SpamBlacklist](https://www.mediawiki.org/wiki/Extension:SpamBlacklist)  (1.21+)
+- [TitleBlacklist](https://www.mediawiki.org/wiki/Extension:TitleBlacklist)  (1.21+)
+
+#### API
+- [PageImages](https://www.mediawiki.org/wiki/Extension:PageImages)  (additional extension will be bundled in future release MW 1.34+)
+
+#### Other
+- [Gadgets](https://www.mediawiki.org/wiki/Extension:Gadgets)  (1.18+)
+- [LocalisationUpdate](https://www.mediawiki.org/wiki/Extension:LocalisationUpdate)  (1.21+)
+- [MultimediaViewer](https://www.mediawiki.org/wiki/Extension:MultimediaViewer)  (1.31+)
+- [OATHAuth](https://www.mediawiki.org/wiki/Extension:OATHAuth)  (1.31+)
+- [TextExtracts](https://www.mediawiki.org/wiki/Extension:TextExtracts)  (additional extension will be bundled in future release MW 1.34+)
+- [UploadWizard](https://www.mediawiki.org/wiki/Extension:UploadWizard)  (Additional Extension)
 
 
 ## Changelog
@@ -144,6 +165,8 @@ docker run --name=mediawiki_wiki \
 ```
 
 ### With MySQL
+
+See KNOWNISSUES.md if using MySQL 8+
 
 Start a MySQL container.
 
@@ -193,6 +216,8 @@ docker run --name=mediawiki_wiki \
 
 ### With PostgreSQL
 
+See KNOWNISSUES.md if using MediaWiki installer.
+
 Start a PostgreSQL container.
 
 ```
@@ -238,7 +263,7 @@ From here on `/config` and `/assets` will refer to the host path that you mapped
 
 If any of these files, except for **LocalSettings.php**, becomes mis-configured and you can't fix it, just delete it and restart the container and the default file will be loaded back.
 
-**LocalSettings.php** is created by the MediaWiki installer.
+**LocalSettings.php** is created/generated by the MediaWiki installer.
 
 - NGINX `/config/nginx/nginx.conf`
 - PHP-FPM `/config/php/php-fmp.conf`
@@ -259,6 +284,8 @@ If any of these files, except for **LocalSettings.php**, becomes mis-configured 
 
 ### Uploads
 
+See [Manual:Configuring_file_uploads](https://www.mediawiki.org/wiki/Manual:Configuring_file_uploads) for more details on file uploads.
+
 Uploads default to `/config/www/mediawiki/images/`
 
 There are several configurations in **LocalSettings_Extras.php** for file uploads that are already defined but commented out
@@ -266,29 +293,39 @@ There are several configurations in **LocalSettings_Extras.php** for file upload
 They include:
 
 ```
-## File Uploads
-## See https://www.mediawiki.org/wiki/Manual:Configuring_file_uploads
-#$wgEnableUploads = true; # Enable uploads
-// Uncomment below to use docker volume /assets upload path or set your own path
-#$wgUploadPath = "/assets";
-#$wgUploadDirectory = "/assets";
-// Maximum file upload size
-// If you increase this valve you must also update the config/php/php-local.ini file
-#$wgUploadSizeWarning = 1073741824; // 1024*1024*1024 = 1 GB
-#$wgMaxUploadSize = 1073741824; // 1024*1024*1024 = 1 GB
-// Allowed file extension types
-#$wgFileExtensions = array( 'png', 'gif', 'jpg', 'jpeg', 'doc',
-#    'xls', 'mpp', 'pdf', 'ppt', 'tiff', 'bmp', 'docx', 'xlsx',
-#    'pptx', 'ps', 'odt', 'ods', 'odp', 'odg'
-#);
-// Uploading directly from a URLs
-#$wgAllowCopyUploads = true;
-#$wgCopyUploadsFromSpecialUpload = true;
+$wgEnableUploads = true;						// Enable uploads
+$wgUploadPath = "/assets";						// Alternet path to file uploads. The URL of the upload directory.
+$wgUploadDirectory = "/assets";						// Alternet path to file uploads. The file system path of the folder where uploaded files will be stored.
+$wgUploadSizeWarning = 1073741824; // 1024*1024*1024 = 1 GB		// Maximum file upload size. If you increase this valve you must also update the config/php/php-local.ini file
+$wgMaxUploadSize = 1073741824; // 1024*1024*1024 = 1 GB			// Maximum file upload size. If you increase this valve you must also update the config/php/php-local.ini file
+$wgFileExtensions = array( 'png', 'gif', 'jpg', 'jpeg', 'doc',
+    'xls', 'mpp', 'pdf', 'ppt', 'tiff', 'bmp', 'docx', 'xlsx',
+    'pptx', 'ps', 'odt', 'ods', 'odp', 'odg'
+);									// Allowed file extension types
+$wgAllowCopyUploads = true;						// Uploading directly from a URLs
+$wgCopyUploadsFromSpecialUpload = true;					// Uploading directly from a URLs
 ```
 
-### E-Mail
+### Email
 
-Not setup/tested. May be missing necessary libs or it may just work as is. *Plan to include in a future build*
+See MediaWiki [email configuration settings](https://www.mediawiki.org/wiki/Manual:Configuration_settings#Email_settings) for more details on email settings.
+
+Enable Email is checked by default in the MediaWiki installer.
+
+If you want to change whether Email is enabled, set **$wgEnableEmail** in **LocalSettings.php** to **true** or **false**
+
+Configure your SMTP server settings in **LocalSettings_Extras.php**
+
+```
+$wgSMTP = [
+    'host'     => "mail.example.com", 	// could also be an IP address. Where the SMTP server is located
+    'IDHost'   => "example.com",      	// Generally this will be the domain name of your website (aka mywiki.org)
+    'port'     => 25,                 	// Port to use when connecting to the SMTP server
+    'auth'     => true,               	// Should we use SMTP authentication (true or false)
+    'username' => "my_user_name",     	// Username to use for SMTP authentication (if being used)
+    'password' => "my_password"       	// Password to use for SMTP authentication (if being used)
+];
+```
 
 
 ### Logo
@@ -308,6 +345,18 @@ The default skins are packaged with MediaWiki:
 * vector
 
 You can add more [skins](https://www.mediawiki.org/wiki/Manual:Skins) by downloading and adding them to `/confing/www/mediawiki/skins` and enable as per the skin's installation instructions. Add additional configurations to `/config/www/mediawiki/LocalSettings.php`
+
+### Default User Options
+
+See MediaWiki [Manual:$wgDefaultUserOptions](https://www.mediawiki.org/wiki/Manual:$wgDefaultUserOptions) for more details on Default User Options.
+
+There is a few examples in **LocalSettings_Extras.php** that might commonly be used set with the default values.
+
+```
+$wgDefaultUserOptions['watchdefault'] = 1;		// Add pages the user edits to their watchlist, checking the "Watch this page" by default on all edited pages.
+$wgDefaultUserOptions['date'] = 'default';		// Date format. Options: 'default', 'mdy', 'dmy', 'ymd', 'ISO 8601', 'persian'
+$wgDefaultUserOptions['timecorrection'] = '0';		// A fixed timezone offset or ZoneInfo zone
+```
 
 ### Additional Extensions
 
@@ -334,24 +383,26 @@ The container has some performance related configuration options. If you have mo
 
 ## Managing Extensions With ExtensionManager
 
-*This does not work for all extensions especially older ones. Check the extension documentation first, if the extension uses `require_once "$IP/extensions/ExtensionName/ExtensionName.php";` to load it, then do not use ExtensionManager, instead, download the the extension manually to `/config/www/mediawiki/extensions/ExtensionName`. If you add an extension using ExtensionManager and your wiki site won't load, just use ExtensionManager to remove it and try adding it manually per the extension's documentation. I may expand the functionality of ExtensionManager later on to make it usable with older extensions.*
+*Updated 1.33-4 This will now work for older extensions as well.*
 
 This docker includes scripts for easing the adding and removal of extensions.
 
 ExtensionManager can remove extensions that were not added using ExtensionManager, for example, if you wanted to remove one of the core extensions included with MediaWiki
 
+If you add an extension using ExtensionManager and your wiki site won't load, just use ExtensionManager to remove it. Some extension just don't work with newer versions of MediaWiki.
+
 ### Using ExtensionManager
 
-Edit file `/config/ExtensionManager/MANAGER`, add the operator **+** or **-** and extension's name per line.
+Edit file `/config/ExtensionManager/MANAGER`, add the operator **+**, **\***, or **-** and extension's name per line.
 
-You can add and remove as many extensions as you want at once in any combination.
+You can add and remove as many extensions as you want, at once, in any combination.
 
 For example:
 ```
 +ContactPage
 -AddMessages
 +Poem
--LinkTarget
+*LinkTarget
 ```
 
 The extension's name must be typed out exactly as it is named.
@@ -362,18 +413,24 @@ Or use `docker exec -it mediawiki_wiki /config/ExtensionManager/run` (*change me
 
 Once an extension has been added it may require additional configurations per the extension's documentation.
 
+Link to the extension's documentation are added to **LocalSettings.php** along with the load command.
+
 If additional configurations are needed, add them to **LocalSettings_Extensions.php**
 
 ### Adding An Extension
 
-Use `+` and the extension's name.
+Check the extension's documentation first.
+
+If the extension uses `wfLoadExtension( 'ExtensionName' );` to load it, use `+` and the extension's name. (newer)
+
+If the extension uses `require_once "$IP/extensions/ExtensionName/ExtensionName.php";` to load it, use `*` and the extension's name. (older)
 
 For example:
 ```
 +ContactPage
 +AddMessages
 +Poem
-+LinkTarget
+*LinkTarget
 ```
 
 ### Removing An Extension
@@ -404,7 +461,7 @@ It will not effect any additional configurations for the extension that you may 
 
 Use `-` and the extension's name then
 
-Use `+` and the extension's name.
+Use `+` or `*` and the extension's name.
 
 For example:
 ```
