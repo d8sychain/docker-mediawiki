@@ -53,7 +53,7 @@ echo 'copying config files...'
 [[ ! -f /run/s6/services/parsoid/config.yaml ]] && \
 	cp /config/parsoid/config.yaml 	$PARSOID_HOME/config.yaml && \
 	echo 'parsoid config.yaml copied'
-	
+
 # set set execute permissions for mediawiki extentions
 chmod a+x $MEDIAWIKI_PATH/extensions/SyntaxHighlight_GeSHi/pygments/pygmentize
 chmod a+x $MEDIAWIKI_PATH/extensions/Scribunto/includes/engines/LuaStandalone/binaries/lua5_1_5_linux_64_generic/lua
@@ -64,5 +64,3 @@ chmod -R a=rw $MEDIAWIKI_PATH/images
 # set ownership and permissions for mediawiki to use docker volume /assets directory for file uploads
 chown -R abc:abc /assets
 chmod -R a=rw /assets
-
-

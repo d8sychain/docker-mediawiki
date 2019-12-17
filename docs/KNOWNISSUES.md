@@ -8,6 +8,7 @@ KNOWNISSUES
 	* Delete or rename the following files: **/config/www/mediawiki/ExtraLocalSettings.php** and **/config/nginx/nginx.conf** 
 	* Remove line 163 **# Load extra settings** and line 164 **require ExtraLocalSettings.php';** from **LocalSettings.php**
 	* Restart the container.
+* I have noticed occasional that VisualEditor will not load and returns an error. This may be due to an issue with caching, https://www.mediawiki.org/wiki/Topic:Ueycowwi66jadub1  I have not tested this.
 	
 # MediaWiki using MySQL 8+ docker
 
