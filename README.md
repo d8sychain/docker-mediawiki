@@ -47,6 +47,11 @@ The main focus of this docker was to build it in a way that makes it more conven
     * [Additional Extensions](#additional-extensions)
     * [Performance](#performance)
 * [Managing Extensions With ExtensionManager](#managing-extensions-with-extensionmanager)
+	* [Using ExtensionManager](using-extensionmanager)
+	* [Adding An Extension](adding-an-extension)
+	* [Removing An Extension](removing-an-extension)
+	* [Updating The Database](updating-the-database)
+	* [Upgrading An Extension](upgrading-an-extension)
 * [Upgrading](#upgrading)
 * [Contributing](#contributing)
 * [License](#license)
@@ -61,18 +66,19 @@ The main focus of this docker was to build it in a way that makes it more conven
 
 ## Features
 
-- [MediaWiki](https://www.mediawiki.org) v1.33.1
+- [MediaWiki](https://www.mediawiki.org) v1.33.1  *(v1.34.0 expected Late Dec '19)*
 - [Nginx](https://www.nginx.com) 1.16.1
-- [PHP-FPM](https://www.php.net/manual/en/book.fpm.php) with [PHP](https://www.mediawiki.org/wiki/Compatibility#PHP) 7.3.8
+- [PHP-FPM](https://www.php.net/manual/en/book.fpm.php) with [PHP](https://www.mediawiki.org/wiki/Compatibility#PHP) 7.3.11
 - [Parsoid](https://www.mediawiki.org/wiki/Parsoid) running on [NodeJS](https://nodejs.org) 10.16.3
 - [APCu](https://www.php.net/manual/en/book.apcu.php) PHP caching [*see MediaWiki Perfomance Tuning*](https://www.mediawiki.org/wiki/Manual:Performance_tuning#Object_caching)
 - [International Components for Unicode](http://site.icu-project.org/) 64.2 for Unicode normalization
-- [Lua](http://www.lua.org) 5.1
+- [Lua](http://www.lua.org) 5.1.5
 - [ImageMagick](https://imagemagick.org/) for thumbnail generation
 - [GNU Diffutils](https://www.gnu.org/software/diffutils/)
 - Configured with [Short URLs](https://www.mediawiki.org/wiki/Manual:Short_URL)
 - [ExtensionManager](#extensionmanager) for adding and removing extension
 - Supports [SQLite](https://www.sqlite.org/index.html), [MySQL](https://www.mysql.com/), [MariaDB](https://mariadb.com/), [PostgreSQL](https://www.postgresql.org) databases
+- For a complete list of installed packages and thier version see /path/to/store/log/packages.list
 
 ### Extensions
 MediaWiki comes with a number of extensions bundled in by default since version 1.18.
@@ -383,17 +389,17 @@ The container has some performance related configuration options. If you have mo
 
 ## Managing Extensions With ExtensionManager
 
-*Updated 1.33-4 This will now work for older extensions as well.*
-
 This docker includes scripts for easing the adding and removal of extensions.
 
 ExtensionManager can remove extensions that were not added using ExtensionManager, for example, if you wanted to remove one of the core extensions included with MediaWiki
 
 If you add an extension using ExtensionManager and your wiki site won't load, just use ExtensionManager to remove it. Some extension just don't work with newer versions of MediaWiki.
 
+In addition to adding and removing extensions, ExtensionManager can update the database schema, which is needed after adding some extensions.
+
 ### Using ExtensionManager
 
-Edit file `/config/ExtensionManager/MANAGER`, add the operator **+**, **\***, or **-** and extension's name per line.
+Edit file `/config/ExtensionManager/MANAGER`, add the operator **+**, **\***, or **-** and the extension's name (case sensitive) and/or **updatedb** per line.
 
 You can add and remove as many extensions as you want, at once, in any combination.
 
@@ -402,7 +408,8 @@ For example:
 +ContactPage
 -AddMessages
 +Poem
-*LinkTarget
+*ConfirmAccount
+updatedb
 ```
 
 The extension's name must be typed out exactly as it is named.
@@ -411,7 +418,7 @@ Then restart the container.
 
 Or use `docker exec -it mediawiki_wiki /config/ExtensionManager/run` (*change mediawiki_wiki to the name of your container*)
 
-Once an extension has been added it may require additional configurations per the extension's documentation.
+Once an extension has been added it may require updating the database to add additional tables and/or additional configurations per the extension's documentation.
 
 Link to the extension's documentation are added to **LocalSettings.php** along with the load command.
 
@@ -430,7 +437,7 @@ For example:
 +ContactPage
 +AddMessages
 +Poem
-*LinkTarget
+*ConfirmAccount
 ```
 
 ### Removing An Extension
@@ -442,8 +449,24 @@ For example:
 -ContactPage
 -AddMessages
 -Poem
--LinkTarget
+-ConfirmAccount
 ```
+
+### Updating The Database
+
+Some extensions require the database schema to be updated. Most extensions that require schema updates will say so in their documentation.
+
+Use `updatedb` to run the MediaWiki **update.php** script.
+
+For example:
+```
+*ConfirmAccount
+updatedb
+```
+
+**Warning: update.php may exit with errors, leaving the database in an inconsistent state. Always backup the database before running the script!**
+
+See https://www.mediawiki.org/wiki/Manual:Update.php for additional information on update.php
 
 ### Upgrading An Extension
 
