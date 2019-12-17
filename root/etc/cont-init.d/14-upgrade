@@ -8,7 +8,6 @@ if [ $APK_UPGRADE == true ]
 		apk upgrade
 fi
 
-
 ## upgrade mediawiki part 1
 # test for version control file
 if [ -e $MEDIAWIKI_PATH/VERSION ]
@@ -37,5 +36,3 @@ if [ -e $MEDIAWIKI_PATH/VERSION ]
 	else 
 		echo mediawiki not yet installed
 fi
-
-	

@@ -10,16 +10,17 @@ GOALS
 - ~~An automatic extension installer (evolved into ExtensionManager)~~
 - Improve/Simplify file uploads storage
 - ~~Configure/test Email use~~
+- ~~ExtensionManager: Add ability to update database needed for some extensions~~
 - Test all extensions
 	
 	Special Pages
-	- [CiteThisPage](https://www.mediawiki.org/wiki/Extension:CiteThisPage)  (1.21+)
-	- [Interwiki](https://www.mediawiki.org/wiki/Extension:Interwiki) (1.21+)
+	- ~~[CiteThisPage](https://www.mediawiki.org/wiki/Extension:CiteThisPage)~~  (1.21+)
+	- ~~[Interwiki](https://www.mediawiki.org/wiki/Extension:Interwiki)~~ (1.21+)
 	- ~~[Maintenance](https://www.mediawiki.org/wiki/Extension:Maintenance)~~  (Additional Extension)
-	- [Nuke](https://www.mediawiki.org/wiki/Extension:Nuke)  (1.18+)
-	- [Renameuser](https://www.mediawiki.org/wiki/Extension:Renameuser)  (1.18+)
-	- [Replace Text](https://www.mediawiki.org/wiki/Extension:Replace_Text)  (1.31+)
-	- [UserMerge](https://www.mediawiki.org/wiki/Extension:UserMerge)  (Additional Extension)
+	- ~~[Nuke](https://www.mediawiki.org/wiki/Extension:Nuke)~~  (1.18+)
+	- ~~[Renameuser](https://www.mediawiki.org/wiki/Extension:Renameuser)~~  (1.18+)
+	- ~~[Replace Text](https://www.mediawiki.org/wiki/Extension:Replace_Text)~~  (1.31+)
+	- ~~[UserMerge](https://www.mediawiki.org/wiki/Extension:UserMerge)~~  (Additional Extension)
 
 	Editors
 	- ~~[CodeEditor](https://www.mediawiki.org/wiki/Extension:CodeEditor)~~  (1.31+)
@@ -28,11 +29,11 @@ GOALS
 
 	Parser Hooks
 	- [CategoryTree](https://www.mediawiki.org/wiki/Extension:CategoryTree)  (1.31+)
-	- [Cite](https://www.mediawiki.org/wiki/Extension:Cite)  (1.21+)
-	- [ImageMap](https://www.mediawiki.org/wiki/Extension:ImageMap)  (1.21+)
-	- [InputBox](https://www.mediawiki.org/wiki/Extension:InputBox)  (1.21+)
-	- [ParserFunctions](https://www.mediawiki.org/wiki/Extension:ParserFunctions)  (1.18+)
-	- [Poem](https://www.mediawiki.org/wiki/Extension:Poem)  (1.21+)
+	- ~~[Cite](https://www.mediawiki.org/wiki/Extension:Cite)~~  (1.21+)
+	- ~~[ImageMap](https://www.mediawiki.org/wiki/Extension:ImageMap)~~  (1.21+)
+	- ~~[InputBox](https://www.mediawiki.org/wiki/Extension:InputBox)~~  (1.21+)
+	- ~~[ParserFunctions](https://www.mediawiki.org/wiki/Extension:ParserFunctions)~~  (1.18+)
+	- ~~[Poem](https://www.mediawiki.org/wiki/Extension:Poem)~~  (1.21+)
 	- [Scribunto](https://www.mediawiki.org/wiki/Extension:Scribunto)  (additional extension will be bundled in future release MW 1.34+)
 	- ~~[SyntaxHighlight](https://www.mediawiki.org/wiki/Extension:SyntaxHighlight)~~  (1.21+)
 	- ~~[TemplateData](https://www.mediawiki.org/wiki/Extension:TemplateData)~~  (Additional Extension)
@@ -42,7 +43,7 @@ GOALS
 	- ~~[PdfHandler](https://www.mediawiki.org/wiki/Extension:PdfHandler)~~  (1.21+)
 
 	Spam Prevention
-	- [ConfirmEdit](https://www.mediawiki.org/wiki/Extension:ConfirmEdit)  (1.18+)
+	- ~~[ConfirmEdit](https://www.mediawiki.org/wiki/Extension:ConfirmEdit)~~  (1.18+)
 	- [SpamBlacklist](https://www.mediawiki.org/wiki/Extension:SpamBlacklist)  (1.21+)
 	- [TitleBlacklist](https://www.mediawiki.org/wiki/Extension:TitleBlacklist)  (1.21+)
 
@@ -56,4 +57,3 @@ GOALS
 	- [OATHAuth](https://www.mediawiki.org/wiki/Extension:OATHAuth)  (1.31+)
 	- [TextExtracts](https://www.mediawiki.org/wiki/Extension:TextExtracts)  (additional extension will be bundled in future release MW 1.34+)
 	- ~~[UploadWizard](https://www.mediawiki.org/wiki/Extension:UploadWizard)~~  (Additional Extension)
-	

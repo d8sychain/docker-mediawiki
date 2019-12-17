@@ -2,7 +2,24 @@ CHANGELOG
 
 # Docker MediaWiki
 
-## 2019-12-15 v1.33.1-db5
+## 2019-12-17 v1.33.1-db6
+
+* NGINX config: Set client_max_body_size 0 to fix file upload issue
+* README.md - Updated version numbers
+* README.md - Added additional information
+* GOALS.md - Tested numerous extensions and updated list
+* LocalSettings_Extensions: Sorted configurations alphabetically
+* LocalSettings_Extensions: Added config for ConfirmEdit
+* LocalSettings_Extensions: Added config for Interwiki
+* LocalSettings_Extensions: Added config for LocalisationUpdate
+* LocalSettings_Extensions: Added config for OATHAuth
+* LocalSettings_Extensions: Added config for TitleBlacklist
+* LocalSettings_Extras: Sorted configurations alphabetically
+* ExtensionManager: Added additional checks to prevent certain code from running if LocalSettings.php does not exist
+* ExtensionManager: Added function to update database
+* Cleaned up some whitespace in /root/cont-init.d/
+
+## 2019-12-14 v1.33.1-db5
 
 * Added additional information and changed links in README.md
 * Added comment lines to Dockerfile
