@@ -13,7 +13,8 @@ ENV PARSOID_WORKERS=1
 ENV NODE_PATH=$PARSOID_HOME
 ENV MEDIAWIKI_VERSION_MAJOR=1
 ENV MEDIAWIKI_VERSION_MINOR=33
-ENV MEDIAWIKI_VERSION_BUGFIX=0
+ENV MEDIAWIKI_VERSION_BUGFIX=2
+ENV MEDIAWIKI_VERSION=v$MEDIAWIKI_VERSION_MAJOR\_$MEDIAWIKI_VERSION_MINOR\_$MEDIAWIKI_VERSION_BUGFIX
 ENV MEDIAWIKI_BRANCH=REL$MEDIAWIKI_VERSION_MAJOR\_$MEDIAWIKI_VERSION_MINOR
 ENV MEDIAWIKI_STORAGE_PATH=/defaults/www/mediawiki
 ENV MEDIAWIKI_PATH=/config/www/mediawiki
@@ -42,6 +43,7 @@ RUN \
 		php7-pdo_sqlite \
 		php7-json \
 		php7-pecl-apcu \
+		php7-tokenizer \
 		composer \
 		diffutils \
 		ffmpeg \
@@ -51,6 +53,7 @@ RUN \
 		nodejs-npm \
 		python2 \
 		python3 \
+		lua \
 		make && \
 	echo "**** make php7-fpm unix socket path ****" && \
 		mkdir -p /var/run/php7-fpm/ && \
@@ -140,6 +143,15 @@ RUN \
 			https://gerrit.wikimedia.org/r/mediawiki/extensions/TemplateStyles \
 			$MEDIAWIKI_STORAGE_PATH/extensions/TemplateStyles && \
 		rm -rf $MEDIAWIKI_STORAGE_PATH/extensions/TemplateStyles/.git* && \
+	echo "**** download TemplateWizard extension ****" && \
+		mkdir -p $MEDIAWIKI_STORAGE_PATH/extensions/TemplateWizard && \
+			git clone \
+			--branch ${MEDIAWIKI_BRANCH} \
+			--single-branch \
+			--depth 1 \
+			https://gerrit.wikimedia.org/r/mediawiki/extensions/TemplateWizard \
+			$MEDIAWIKI_STORAGE_PATH/extensions/TemplateWizard && \
+		rm -rf $MEDIAWIKI_STORAGE_PATH/extensions/TemplateWizard/.git* && \
 # remove block in future - start
 # remove these extensions after MEDIAWIKI_VERSION_MINOR changes to 34
 # these extentions will be included with mediawiki core

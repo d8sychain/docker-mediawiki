@@ -34,10 +34,10 @@ GOALS
 	- ~~[InputBox](https://www.mediawiki.org/wiki/Extension:InputBox)~~  (1.21+)
 	- ~~[ParserFunctions](https://www.mediawiki.org/wiki/Extension:ParserFunctions)~~  (1.18+)
 	- ~~[Poem](https://www.mediawiki.org/wiki/Extension:Poem)~~  (1.21+)
-	- [Scribunto](https://www.mediawiki.org/wiki/Extension:Scribunto)  (additional extension will be bundled in future release MW 1.34+)
+	- ~~[Scribunto](https://www.mediawiki.org/wiki/Extension:Scribunto)~~  (additional extension, will be bundled in future release MW 1.34+)
 	- ~~[SyntaxHighlight](https://www.mediawiki.org/wiki/Extension:SyntaxHighlight)~~  (1.21+)
 	- ~~[TemplateData](https://www.mediawiki.org/wiki/Extension:TemplateData)~~  (Additional Extension)
-	- [TemplateStyles](https://www.mediawiki.org/wiki/Extension:TemplateStyles)  (Additional Extension)
+	- ~~[TemplateStyles](https://www.mediawiki.org/wiki/Extension:TemplateStyles)~~  (Additional Extension)
 
 	Media Handlers
 	- ~~[PdfHandler](https://www.mediawiki.org/wiki/Extension:PdfHandler)~~  (1.21+)
@@ -48,12 +48,20 @@ GOALS
 	- [TitleBlacklist](https://www.mediawiki.org/wiki/Extension:TitleBlacklist)  (1.21+)
 
 	API
-	- [PageImages](https://www.mediawiki.org/wiki/Extension:PageImages)  (additional extension will be bundled in future release MW 1.34+)
+	- [PageImages](https://www.mediawiki.org/wiki/Extension:PageImages)  (additional extension, will be bundled in future release MW 1.34+)
 
 	Other
 	- [Gadgets](https://www.mediawiki.org/wiki/Extension:Gadgets)  (1.18+)
 	- [LocalisationUpdate](https://www.mediawiki.org/wiki/Extension:LocalisationUpdate)  (1.21+)
 	- ~~[MultimediaViewer](https://www.mediawiki.org/wiki/Extension:MultimediaViewer)~~  (1.31+)
 	- [OATHAuth](https://www.mediawiki.org/wiki/Extension:OATHAuth)  (1.31+)
-	- [TextExtracts](https://www.mediawiki.org/wiki/Extension:TextExtracts)  (additional extension will be bundled in future release MW 1.34+)
+	- ~~[TemplateWizard](https://www.mediawiki.org/wiki/Extension:TemplateWizard)~~  (Additional Extension)
+	- [TextExtracts](https://www.mediawiki.org/wiki/Extension:TextExtracts)  (additional extension, will be bundled in future release MW 1.34+)
 	- ~~[UploadWizard](https://www.mediawiki.org/wiki/Extension:UploadWizard)~~  (Additional Extension)
+
+- Tested extensions not included in this
+	- [---](https://www.mediawiki.org/wiki/Extension:---)
+	- [Echo](https://www.mediawiki.org/wiki/Extension:Echo) (MySQL/MariaDB only)
+	- [CheckUser](https://www.mediawiki.org/wiki/Extension:CheckUser)
+	- [LoginNotify](https://www.mediawiki.org/wiki/Extension:LoginNotify) (MySQL/MariaDB only)
+	- [Wikibase](https://www.mediawiki.org/wiki/Wikibase)
