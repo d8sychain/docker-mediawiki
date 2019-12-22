@@ -1,6 +1,8 @@
 #!/usr/bin/with-contenv bash
+
 mkdir -p $EXTENSION_MANAGER_PATH
 cp /etc/cont-init.d/17-extension-manager $EXTENSION_MANAGER_PATH/run
+
 # setup ExtensionManager
 if [ -e $MEDIAWIKI_PATH/LocalSettings.php ]
 	then
@@ -15,6 +17,8 @@ if [ -e $MEDIAWIKI_PATH/LocalSettings.php ]
 EOT
 		fi
 fi
+
+# ExtensionManager core
 if [ -e $EXTENSION_MANAGER_PATH/MANAGER ] && [ -e $EXTENSION_MANAGER_PATH/INSTALLED ]
 	then
 		if [ -e $MEDIAWIKI_PATH/LocalSettings.php ]
