@@ -17,16 +17,16 @@ if [ -e $MEDIAWIKI_PATH/VERSION ]
 			then
 				# compare docker-mediawiki version to version control file if upgrading is enabled
 				echo mediawiki upgrade enabled
-				if [ "$MEDIAWIKI_BRANCH" != "$(cat $MEDIAWIKI_PATH/VERSION)" ]
+				if [ "$MEDIAWIKI_VERSION" != "$(cat $MEDIAWIKI_PATH/VERSION)" ]
 					then
 						current_date=$(date '+%Y%m%d')
 						current_version=mediawiki_"$(cat $MEDIAWIKI_PATH/VERSION)"
 						echo backing up mediawiki to /config/backup/$current_version\_$current_date				
 						mkdir -p /config/backup/$current_version\_$current_date
 						cp -r /config/www/. /config/backup/$current_version\_$current_date
-						echo upgrade mediawiki to v$MEDIAWIKI_VERSION_MAJOR\.$MEDIAWIKI_VERSION_MINOR
+						echo upgrade mediawiki to $MEDIAWIKI_VERSION
 						rm -f $MEDIAWIKI_PATH/index.php
-						sed -i "s/.*/upgrading to $MEDIAWIKI_BRANCH/" $MEDIAWIKI_PATH/VERSION
+						sed -i "s/.*/upgrading to $MEDIAWIKI_VERSION/" $MEDIAWIKI_PATH/VERSION
 						chown abc:abc -R /config/backup
 						chmod a=rw -R /config/backup
 				fi

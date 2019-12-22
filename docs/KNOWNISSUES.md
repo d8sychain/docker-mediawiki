@@ -1,6 +1,6 @@
 KNOWNISSUES
 
-# This MediaWiki docker
+## This MediaWiki docker
 
 * Updating from image v1.33-db2 or older to v1.33-db3+ may cause issues
 	* These changes are not automated incase of any customizations that you may have made to the mentioned files and need to be retained.
@@ -10,7 +10,7 @@ KNOWNISSUES
 	* Restart the container.
 * I have noticed occasional that VisualEditor will not load and returns an error. This may be due to an issue with caching, https://www.mediawiki.org/wiki/Topic:Ueycowwi66jadub1  I have not tested this.
 	
-# MediaWiki using MySQL 8+ docker
+## MediaWiki using MySQL 8+ docker
 
 * MediaWiki can not connect/authenticate to MySQL 8.0.4 and above with new installations of MySQL
 	* As of MySQL 8.0.4, MySQL changed the default Authentication Plugin https://mysqlserverteam.com/mysql-8-0-4-new-default-authentication-plugin-caching_sha2_password/ 
@@ -27,9 +27,18 @@ KNOWNISSUES
 		* Add MySQL and  volume map the new directory to Container Path: **/etc/mysql/conf.d**
 		* Also see https://forums.unraid.net/topic/84304-support-d8sychain-mediawiki/?tab=comments#comment-783962 for related info.
 					
-# MediaWiki using PostgreSQL docker
+## MediaWiki using PostgreSQL docker
 
 * Installer does not respect initial DBport declaration https://phabricator.wikimedia.org/T30162
 	* When using the MediaWiki installer it will default to the default database port number 5432 regardless of what port number you enter
 	* Known work around:
 		* Use the database default port number 5432, use the MediaWiki installer, then after completing the installation change the database port number to what you want it to be and edit the MediaWiki LocalSettings.php setting '$wgDBport = "value";' to match your setup
+
+## MediaWiki Extensions
+
+* Echo: Does not support SQLite, and I believe it only supports MySQL/MariaDB, but I haven't tested with any other databases (and don't plan too)
+	* Since it only supports MySQL/MariaDB, other extensions that depend on Echo can't be used either, such as:
+		* StructuredDiscussions (previously known as Flow)
+		* Thanks
+		* LoginNotify
+		* ect...

@@ -4,7 +4,7 @@
 if [ -e $MEDIAWIKI_PATH/VERSION ]
 	then
 		# update database if upgrade mediawiki step 1 has executed
-		if [ "upgrading to $MEDIAWIKI_BRANCH" == "$(cat $MEDIAWIKI_PATH/VERSION)" ]
+		if [ "upgrading to $MEDIAWIKI_VERSION" == "$(cat $MEDIAWIKI_PATH/VERSION)" ]
 			then
 				# upgrade extensions added with ExtensionManager
 				INSTALLED=`cat $EXTENSION_MANAGER_PATH/INSTALLED`
@@ -27,7 +27,7 @@ if [ -e $MEDIAWIKI_PATH/VERSION ]
 				echo 'upgrading mediawiki database'
 				cd $MEDIAWIKI_PATH/maintenance
 				php update.php
-				sed -i "s/.*/$MEDIAWIKI_BRANCH/" $MEDIAWIKI_PATH/VERSION
+				sed -i "s/.*/$MEDIAWIKI_VERSION/" $MEDIAWIKI_PATH/VERSION
 		fi
 	else
 		# version control file does not exist, create it and set version if mediawiki has been installed (incase 15-config fails) 
@@ -36,6 +36,6 @@ if [ -e $MEDIAWIKI_PATH/VERSION ]
 				echo 'adding version control'
 				cd $MEDIAWIKI_PATH
 				> VERSION
-				echo $MEDIAWIKI_BRANCH > VERSION
+				echo $MEDIAWIKI_VERSION > VERSION  # full version numbering
 		fi
 fi
