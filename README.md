@@ -45,7 +45,7 @@ The main focus of this docker was to build it in a way that makes it more conven
     * [Skins](#skins)
 	* [Default User Options](default-user-options)
     * [Additional Extensions](#additional-extensions)
-		*[Additional Instructions](#additional-instructions)
+		* [Additional Instructions](#additional-instructions)
     * [Performance](#performance)
 * [Managing Extensions With ExtensionManager](#managing-extensions-with-extensionmanager)
 	* [Using ExtensionManager](using-extensionmanager)
