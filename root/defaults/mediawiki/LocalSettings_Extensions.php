@@ -17,6 +17,12 @@ if ( !defined( 'MEDIAWIKI' ) ) {
 // then you do NOT need to uncommit it here.
 
 
+## CheckUser https://www.mediawiki.org/wiki/Extension:CheckUser
+	#wfLoadExtension( 'CheckUser' );
+	$wgGroupPermissions['sysop']['checkuser'] = true;
+	$wgGroupPermissions['sysop']['checkuser-log'] = true;
+
+
 ## ConfirmEdit https://www.mediawiki.org/wiki/Extension:ConfirmEdit
 	#wfLoadExtension( 'ConfirmEdit' );
 	// There are numerous different CAPTCHA types included with ConfirmEdit. See documentation
@@ -30,6 +36,11 @@ if ( !defined( 'MEDIAWIKI' ) ) {
 	$wgCaptchaTriggers['badlogin']      = true; */
 
 
+## Gadget https://www.mediawiki.org/wiki/Extension:Gadget
+	$wgGroupPermissions['interface-admin']['gadgets-edit'] = true;
+	$wgGroupPermissions['interface-admin']['gadgets-definition-edit'] = true;
+
+
 ## Interwiki https://www.mediawiki.org/wiki/Extension:Interwiki
 	#wfLoadExtension( 'Interwiki' );
 	// To grant sysops permissions to edit interwiki data
@@ -41,13 +52,14 @@ if ( !defined( 'MEDIAWIKI' ) ) {
 	//Default repository source to fetch translation. GitHub is set to default repository.
 	//This can be changed but is not recommended
 	/* $wgLocalisationUpdateRepositories['github'] = array(
-	'mediawiki' =>
-		'https://raw.github.com/wikimedia/mediawiki/master/%PATH%',
-	'extension' =>
-		'https://raw.github.com/wikimedia/mediawiki-extensions-%NAME%/master/%PATH%',
-	'skin' =>
-		'https://raw.github.com/wikimedia/mediawiki-skins-%NAME%/master/%PATH%'
-	); */
+			'mediawiki' =>
+				'https://raw.github.com/wikimedia/mediawiki/master/%PATH%',
+			'extension' =>
+				'https://raw.github.com/wikimedia/mediawiki-extensions-%NAME%/master/%PATH%',
+			'skin' =>
+				'https://raw.github.com/wikimedia/mediawiki-skins-%NAME%/master/%PATH%'
+		);
+	*/
 	//LocalisationUpdate does not update translations automatically.
 	//Whenever you want to run an update, run php extensions/LocalisationUpdate/update.php on the command line, or set up a cron job.
 
@@ -66,6 +78,8 @@ if ( !defined( 'MEDIAWIKI' ) ) {
 ## Scribunto https://www.mediawiki.org/wiki/Extension:Scribunto
 	#wfLoadExtension( 'Scribunto' );
 	$wgScribuntoDefaultEngine = 'luastandalone';
+	$wgScribuntoEngineConf['luastandalone']['errorFile'] = '/config/log/lua/lua.log';
+	$wgScribuntoEngineConf['luastandalone']['luaPath'] = '/usr/bin/lua';
 
 
 ## SyntaxHighlight_GeSHi https://www.mediawiki.org/wiki/Extension:SyntaxHighlight
@@ -83,21 +97,22 @@ if ( !defined( 'MEDIAWIKI' ) ) {
 	// OPTIONAL: See https://www.mediawiki.org/wiki/Extension:TemplateStyles#Configuration for more details
 	// Default settings listed below
 	/* $wgTemplateStylesAllowedUrls[
-		"audio" => [
-			"<^https://upload\\.wikimedia\\.org/wikipedia/commons/>"
-		],
-		"image" => [
-			"<^https://upload\\.wikimedia\\.org/wikipedia/commons/>"
-		],
-		"svg" => [
-			"<^https://upload\\.wikimedia\\.org/wikipedia/commons/[^?#]*\\.svg(?:[?#]|$)>"
-		],
-		"font" => [],
-		"namespace" => [
-			"<.>"
-		],
-		"css" => []
-	]; */
+			"audio" => [
+				"<^https://upload\\.wikimedia\\.org/wikipedia/commons/>"
+			],
+			"image" => [
+				"<^https://upload\\.wikimedia\\.org/wikipedia/commons/>"
+			],
+			"svg" => [
+				"<^https://upload\\.wikimedia\\.org/wikipedia/commons/[^?#]*\\.svg(?:[?#]|$)>"
+			],
+			"font" => [],
+			"namespace" => [
+				"<.>"
+			],
+			"css" => []
+		];
+	*/
 	#$wgTemplateStylesNamespaces[ 10 => true ];
 	#$wgTemplateStylesPropertyBlacklist[];
 	#$wgTemplateStylesAtRuleBlacklist[];
@@ -111,23 +126,23 @@ if ( !defined( 'MEDIAWIKI' ) ) {
 	// The Title blacklist can be gathered from multiple sources outside the local message.
 	// For configuring blacklist sources use code as described below:
 	#$wgGroupPermissions['sysop']['tboverride'] = false;
-	#$wgTitleBlacklistSources = array(
-    #array(
-    #     'type' => 'localpage',
-    #     'src'  => 'MediaWiki:Titleblacklist',
-    #),
-    #array(
-    #     'type' => 'url',
-    #     'src'  => 'https://meta.wikimedia.org/w/index.php?title=Title_blacklist&action=raw',
-    #),
-    #array(
-    #     'type' => 'file',
-    #     'src'  => '/home/wikipedia/blacklists/titles',
-    #),
-	#);
+	/* $wgTitleBlacklistSources = array(
+			array(
+				 'type' => 'localpage',
+				 'src'  => 'MediaWiki:Titleblacklist',
+			),
+			array(
+				 'type' => 'url',
+				 'src'  => 'https://meta.wikimedia.org/w/index.php?title=Title_blacklist&action=raw',
+			),
+			array(
+				 'type' => 'file',
+				 'src'  => '/home/wikipedia/blacklists/titles',
+			),
+		); 
+	*/
 	#$wgTitleBlacklistUsernameSources
 	#$wgTitleBlacklistLogHits
-	#
 
 
 ## UploadWizard https://www.mediawiki.org/wiki/Extension:UploadWizard
