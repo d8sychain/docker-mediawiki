@@ -1,6 +1,6 @@
 #!/usr/bin/with-contenv bash
 
-cd /config/log
+cd /config
 apk list > packages.list
 sed -i 's/{[^]]*]//g' packages.list
 sed -i 's/x86_64//g' packages.list
