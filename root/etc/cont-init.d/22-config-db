@@ -1,0 +1,49 @@
+#!/usr/bin/with-contenv bash
+
+# mysql install option
+if [ $MYSQL_INSTALL_OPTION == true ]
+	then
+	# install mariadb packages
+		if ! grep -q mariadb /config/packages.list
+			then
+				apk add --no-cache --upgrade \
+				mariadb \
+				mariadb-client
+		fi
+
+		# make folders if required
+		mkdir -p \
+			"$DBDATADIR" \
+			/config/log/mysql \
+			/var/run/mysqld
+
+		if [ -e /etc/mysql/mariadb.conf.d/50-server.cnf ]
+			then
+				CONF_FILE="/etc/mysql/mariadb.conf.d/50-server.cnf";
+			else
+				CONF_FILE="/etc/mysql/my.cnf"; 
+		fi
+
+		# configure my.cnf and mysqld_safe
+		sed -i 's/key_buffer\b/key_buffer_size/g' "$CONF_FILE"
+		sed -ri 's/^(bind-address|skip-networking)/;\1/' "$CONF_FILE"
+		sed -i s#/var/log/mysql#/config/log/mysql#g "$CONF_FILE"
+		sed -i -e 's/\(user.*=\).*/\1 abc/g' "$CONF_FILE"
+		sed -i -e "s#\\(dbdatadir.*=\\).*#\\1 $DBDATADIR#g" "$CONF_FILE"
+		sed -i "s/user='mysql'/user='abc'/g" /usr/bin/mysqld_safe
+
+		# setup custom cnf file
+		[[ ! -f /config/mysql/custom.cnf ]] && \
+			cp /defaults/mysql/my.cnf /config/mysql/custom.cnf
+		[[ ! -L /etc/mysql/conf.d/custom.cnf && -f /etc/mysql/conf.d/custom.cnf ]] && \
+			rm /etc/mysql/conf.d/custom.cnf
+		[[ ! -L /etc/mysql/conf.d/custom.cnf ]] && \
+			ln -s /config/mysql/custom.cnf /etc/mysql/conf.d/custom.cnf
+
+		# set permissions
+		[[ -e /etc/mysql/debian.cnf ]] && \
+			(chown abc:abc /etc/mysql/debian.cnf && chmod 644 /etc/mysql/debian.cnf)
+		chmod -R 777 \
+			/var/run/mysqld	
+fi
+
