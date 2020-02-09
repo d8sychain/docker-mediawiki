@@ -8,7 +8,6 @@ KNOWNISSUES
 	* Delete or rename the following files: **/config/www/mediawiki/ExtraLocalSettings.php** and **/config/nginx/nginx.conf** 
 	* Remove line 163 **# Load extra settings** and line 164 **require ExtraLocalSettings.php';** from **LocalSettings.php**
 	* Restart the container.
-* I have noticed occasional that VisualEditor will not load and returns an error. This may be due to an issue with caching, https://www.mediawiki.org/wiki/Topic:Ueycowwi66jadub1  I have not tested this.
 	
 ## MediaWiki using MySQL 8+ docker
 
@@ -33,6 +32,11 @@ KNOWNISSUES
 	* When using the MediaWiki installer it will default to the default database port number 5432 regardless of what port number you enter
 	* Known work around:
 		* Use the database default port number 5432, use the MediaWiki installer, then after completing the installation change the database port number to what you want it to be and edit the MediaWiki LocalSettings.php setting '$wgDBport = "value";' to match your setup
+
+## MediaWiki using SQLite
+
+* I have add issues with editing with VisualEditor/Parsiod when using SQLite as the database (gettings API timeouts in logs)
+* Some MediaWiki extensions do not support using SQLite
 
 ## MediaWiki Extensions
 

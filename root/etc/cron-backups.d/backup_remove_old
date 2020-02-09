@@ -1,0 +1,7 @@
+#!/usr/bin/with-contenv bash
+
+# run backup_remove_old
+. /etc/mw-maintenance.d/backup.func
+
+# Change number to set a different number of retention days for scheduled backup removals
+backup_remove_old 28

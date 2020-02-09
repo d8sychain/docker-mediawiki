@@ -1,0 +1,276 @@
+
+# variables
+lock_message="This wiki is currently being backed up. Please check back shortly."
+
+# functions
+fetch_current_timestamp(){
+current_version=mediawiki_"$(cat $MEDIAWIKI_PATH/VERSION)"
+current_date=$(date '+%Y%m%d') #YYYY_MM_DD
+current_time=$(date '+%H%M') #HHMM
+}
+
+backup_list(){
+	cd $BACKUP_PATH
+	# make sure 'ls' doesn't return an error before proceeding
+	ls -d */ >> /dev/null 2>&1
+	status=$?
+	if [ $status = 0 ]  # check 'ls' status
+		then
+			dir_list=$(ls -d */)
+			# clear/set default values, values are used by other functions
+			option_list=""
+			option_array=""
+			option_num=1
+			for list in $dir_list
+				do
+					option_list=$option_num\)$list
+					option_array+="$(echo $option_list | tr -s '/ ' ' ') "
+					echo $option_list | tr -s '/' '\n'
+					((option_num++))
+				done
+		else
+			echo "### no backups to list ###"
+			return 1
+	fi
+}
+
+backup_list_content(){
+	backup_name=$1
+	if [ ! "$backup_name" == "" ]
+		then
+			cd $BACKUP_PATH/$backup_name
+			# make sure 'ls' doesn't return an error before proceeding
+			ls -d */ >> /dev/null 2>&1
+			status=$?
+			if [ $status = 0 ]  # check 'ls' status
+				then
+					dir_list=$(ls -d */)
+					# clear/set default values, values are used by other functions
+					list_num=1
+					for list in $dir_list
+						do
+							echo $list | tr -s '/' '\n'
+							((list_num++))
+						done
+				else
+					echo "### empty ###"
+					return 1
+			fi
+	fi
+}
+
+backup_wiki(){
+	fetch_current_timestamp
+	echo "### backing up mediawiki to $BACKUP_PATH/$current_version\_$current_date\_$current_time ###"
+	mkdir -p $BACKUP_PATH/$current_version\_$current_date\_$current_time/www
+	cp -a -r $1 /config/www/mediawiki $BACKUP_PATH/$current_version\_$current_date\_$current_time/www	
+	backup_finalize
+	echo "### backup complete ###"
+}
+
+backup_data(){
+	fetch_current_timestamp
+	# check for mysql database
+	if [ -d "$MYSQL_DBDATA_PATH" ]
+		then
+			backup_mysql_data $1
+			backup_finalize
+			echo "### backup complete ###"
+	# check for sqlite database
+	elif [ -d /config/www/database ]
+		then
+			backup_sqlite_data $1
+			backup_finalize
+			echo "### backup complete ###"
+		else
+			echo "### no internal database found ###"
+	fi
+}
+
+backup_mysql_data(){
+	# lock database
+	echo "### locking database ###"
+	echo $lock_message > $MEDIAWIKI_PATH/LOCK
+	# backup database
+	echo "### backing up mysql database to $BACKUP_PATH/$current_version\_$current_date\_$current_time ###"
+	mkdir -p $BACKUP_PATH/$current_version\_$current_date\_$current_time
+	cp -a -r $1 $MYSQL_PATH $BACKUP_PATH/$current_version\_$current_date\_$current_time
+	# unlock database
+	echo "### unlocking database ###"
+	> $MEDIAWIKI_PATH/LOCK
+}
+
+backup_sqlite_data(){
+	# lock database
+	echo "### locking database ###"
+	echo $lock_message > $MEDIAWIKI_PATH/LOCK
+	# backup database
+	echo "### backing up sqlite database to $BACKUP_PATH/$current_version\_$current_date\_$current_time ###"
+	mkdir -p $BACKUP_PATH/$current_version\_$current_date\_$current_time/www
+	cp -a -r $1 /config/www/database $BACKUP_PATH/$current_version\_$current_date\_$current_time/www
+	# unlock database
+	echo "### unlocking database ###"
+	> $MEDIAWIKI_PATH/LOCK
+}
+
+backup_assets(){
+	fetch_current_timestamp
+	echo "### backing up assets to $BACKUP_PATH/$current_version\_$current_date\_$current_time ###"
+	mkdir -p $BACKUP_PATH/$current_version\_$current_date\_$current_time
+	cp -a -r $1 /config/assets $BACKUP_PATH/$current_version\_$current_date\_$current_time	
+	backup_finalize
+	echo "### backup complete ###"
+}
+	
+backup_all(){
+	fetch_current_timestamp
+	echo "### backing up mediawiki to $BACKUP_PATH/$current_version\_$current_date\_$current_time ###"
+	mkdir -p $BACKUP_PATH/$current_version\_$current_date\_$current_time/www
+	# MediaWiki
+	cp -a -r $1 /config/www/mediawiki $BACKUP_PATH/$current_version\_$current_date\_$current_time/www	
+	# check for mysql database
+	if [ -d "$MYSQL_DBDATA_PATH" ]
+		then
+			backup_mysql_data $1
+	# check for sqlite database
+	elif [ -d /config/www/database ]
+		then
+			backup_sqlite_data $1
+		else
+			echo "### no internal database found ###"
+	fi
+	echo "### backing up assets to $BACKUP_PATH/$current_version\_$current_date\_$current_time ###"
+	mkdir -p $BACKUP_PATH/$current_version\_$current_date\_$current_time
+	# Assets
+	cp -a -r $1 /config/assets $BACKUP_PATH/$current_version\_$current_date\_$current_time
+	echo "### backing up config files to $BACKUP_PATH/$current_version\_$current_date\_$current_time ###"
+	# NGINX
+	cp -a -r $1 /config/nginx $BACKUP_PATH/$current_version\_$current_date\_$current_time
+	# Parsoid
+	cp -a -r $1 /config/parsoid $BACKUP_PATH/$current_version\_$current_date\_$current_time
+	# PHP
+	cp -a -r $1 /config/php $BACKUP_PATH/$current_version\_$current_date\_$current_time
+	backup_finalize
+	echo "### backup complete ###"
+	
+}
+
+backup_configs(){
+	fetch_current_timestamp
+	echo "### backing up config files to $BACKUP_PATH/$current_version\_$current_date\_$current_time ###"
+	# check for mysql database
+	if [ -d "$MYSQL_DBDATA_PATH" ]
+		then
+			# MySQL
+			mkdir -p $BACKUP_PATH/$current_version\_$current_date\_$current_time/mysql
+			cp -a -r $1 /config/mysql/*.cnf $BACKUP_PATH/$current_version\_$current_date\_$current_time/mysql
+	fi
+	mkdir -p $BACKUP_PATH/$current_version\_$current_date\_$current_time
+	# NGINX
+	cp -a -r $1 /config/nginx $BACKUP_PATH/$current_version\_$current_date\_$current_time
+	# Parsoid
+	cp -a -r $1 /config/parsoid $BACKUP_PATH/$current_version\_$current_date\_$current_time
+	# PHP
+	cp -a -r $1 /config/php $BACKUP_PATH/$current_version\_$current_date\_$current_time
+	# MediaWiki
+	mkdir -p $BACKUP_PATH/$current_version\_$current_date\_$current_time/www/mediawiki
+	cp -a -r $1 /config/www/mediawiki/LocalSetting* $BACKUP_PATH/$current_version\_$current_date\_$current_time/www/mediawiki
+	backup_finalize
+	echo "### backup complete ###"
+}
+
+backup_finalize(){
+	echo "### setting permissions ###"
+	chown abc:abc $BACKUP_PATH
+	chmod 664 $BACKUP_PATH
+	chown abc:abc $BACKUP_PATH/$current_version\_$current_date\_$current_time
+	chmod 664 $BACKUP_PATH/$current_version\_$current_date\_$current_time
+}
+
+backup_remove_all(){
+	echo "### removing all backups ###"
+	rm -rf $1 $BACKUP_PATH/mediawiki*
+	echo "### complete ###"
+}
+
+backup_remove(){
+	backup_name=$1
+	if [ ! "$backup_name" == "" ]
+		then
+			echo "### removing $backup_name ###" && \
+			rm -rf $2 $BACKUP_PATH/$backup_name
+			echo "### complete ###"
+		else
+			echo "### no backup name provided ###"
+	fi
+}
+
+backup_remove_old(){
+	age=$1
+	re='^[0-9]+$' # regexp match digits only
+	if [[ $age =~ $re ]]
+		then
+			remove_count=0
+			retension_length=$(($age*60*60*24)) # in seconds
+			todays_date=$(date +%s) #seconds since 1970-01-01 00:00:00 UTC
+			retension_point=$(($todays_date-$retension_length))
+			dir_matches="$(grep -iEo '([0-9]{8})' <<<"$dir_list")"
+			for dir_match in $dir_matches
+				do
+					dir_date="$(date -d $dir_match '+%s')" #format to seconds since 1970-01-01 00:00:00 UTC
+					if [ $dir_date -lt $retension_point ] #folder is older (less than) than $age, remove it
+						then
+							dir_date="$(date -d $dir_match '+%Y%m%d')" #format back to YYYY_MM_DD
+							rm -rf $BACKUP_PATH/*$dir_date*
+							((remove_count++))
+					fi
+				done
+			echo "### removing $remove_count backup(s) ###"
+			echo "### complete ###"
+		else
+			return 1
+	fi
+}
+
+backup_restore(){
+	backup_name=$1
+	if [ ! "$backup_name" == "" ]
+		then
+			echo "### restoring $backup_name ###" && \
+			cp -a -r $2 $BACKUP_PATH/$backup_name/. /config
+			echo "### complete ###"
+		else
+			echo "### no backup name provided ###"
+	fi
+}
+
+backup_rename(){
+	selected_name="$1"
+	new_name="$2"
+	current_backups="$3"
+	# replace special characters with _
+	valid_chars='A-Za-z0-9_\-\.\ '
+	if [[ $new_name =~ [^$valid_chars] ]]
+		then
+			echo "### invalid characters used ###"
+			return 1
+	elif [ "$new_name" == "" ]
+		then
+			echo "### new name can not be blank ###"
+			return 1
+	elif [ "selected_name" == "" ]
+		then
+			echo "### selected name can not be blank ###"
+			return 1
+	elif [[ $current_backups =~ $new_name ]]
+		then
+			cp -fla "$BACKUP_PATH/$selected_name/." "$BACKUP_PATH/$new_name"
+			rm -rf "$BACKUP_PATH/$selected_name"
+		else
+			new_name=$(echo "$new_name" | sed 	-e 's/ /_/g' \
+												-e 's/^\-/_/' \
+												-e 's/^\./_/' \
+												)
+			mv -v "$BACKUP_PATH/$selected_name" "$BACKUP_PATH/$new_name"
+	fi
+}

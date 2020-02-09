@@ -10,13 +10,13 @@ Status: Beta
 
 *I am considering this docker as beta for the time being. MediaWiki itself is fully functional and able to be used in a production environment, however, I have not tested / used all the extensions that are included with the core MediaWiki repository, meaning, some of the extensions may require additional libraries and/or additional configurations to function. See the documentation for a particular extension.*
 
-Docker container for [MediaWiki](https://www.mediawiki.org) running under [Nginx](https://www.nginx.com) and [PHP-FPM](https://php-fpm.org/) with [Parsoid](https://www.mediawiki.org/wiki/Parsoid) service.
+Docker container for [MediaWiki](https://www.mediawiki.org) running on Alpine, with [Nginx](https://www.nginx.com), [PHP-FPM](https://php-fpm.org), [MediaWiki Parsoid](https://www.mediawiki.org/wiki/Parsoid) service, a CLI menu to simplify managing extensions, backups, and database updates, and *optional* [MariaDB](https://www.mariadb.org).
 
-Based on LinuxServer.io custom base image [lsiobase/nginx:3.10](https://hub.docker.com/r/lsiobase/nginx/tags?page=1&name=3.10) built with Alpine linux, nginx and S6 overlay.
+Based on LinuxServer.io custom base image [lsiobase/nginx:3.11](https://hub.docker.com/r/lsiobase/nginx/tags?page=1&name=3.10) built with Alpine, NGINX and S6 Overlay.
 
 Packaged with the WYSIWYG [VisualEditor](https://www.mediawiki.org/wiki/VisualEditor) extension and its dependent [Parsoid](https://www.mediawiki.org/wiki/Parsoid) service along with other extensions.
 
-This container is running 4 master processes (Nginx, PHP-FPM, Parsoid, Cron), each running their own child processes, supervised by [S6-overlay](https://github.com/just-containers/s6-overlay).
+This container is running 4 master processes: Nginx, PHP-FPM, Parsoid, Cron (5 if using optional MariaDB), each running their own child processes, supervised by [S6-overlay](https://github.com/just-containers/s6-overlay).
 
 For a basic understanding of docker please refer to the official [documentation](https://docs.docker.com/).
 
@@ -29,11 +29,13 @@ The main focus of this docker was to build it in a way that makes it more conven
 * [Changelog](#changelog)
 * [Known Issues](#known-issues)
 * [Getting Started](#getting-started)
-    * [With UnRaid](#with-unraid)
+    * [Database Options](#database-options)
+	* [With UnRaid](#with-unraid)
 	* [With SQLite](#with-sqlite)
 	* [With MySQL](#with-mysql)
 	* [With MariaDB](#with-mariadb)
 	* [With PostgreSQL](#with-postgresql)
+* [Parameters](#parameters)
 * [HTTPS](#https)
 * [Configuration](#configuration)
     * [Configuration files](#configuration-files)
@@ -61,26 +63,29 @@ The main focus of this docker was to build it in a way that makes it more conven
 
 ## Supported Tags
 
-- `latest` Latest push to [(Master Branch)](https://github.com/d8sychain/docker-mediawiki/tree/master)
-- `1.33` Latest push to [(1.33 Branch)](https://github.com/d8sychain/docker-mediawiki/tree/1.33)
-- `1.34` Latest push to [(1.34 Branch)](https://github.com/d8sychain/docker-mediawiki/tree/1.34) *Expected late Dec '19*
+- `latest` Latest push to [(Master Branch)](https://github.com/d8sychain/docker-mediawiki/tree/master) - Alpine 3.11 - MW 1.34.0
+- `1.33` Latest push to [(1.33 Branch)](https://github.com/d8sychain/docker-mediawiki/tree/1.33) - Alpine 3.11 - MW 1.33.2 *no longer developing as of Jan '20, may still recieve fixes from other branches or version bumps*
+- `1.34` Latest push to [(1.34 Branch)](https://github.com/d8sychain/docker-mediawiki/tree/1.34) - Alpine 3.11 - MW 1.34.0
+- `1.35` Latest push to [(1.35 Branch)](https://github.com/d8sychain/docker-mediawiki/tree/1.34) - Alpine 3.11 - MW 1.35 *ALPHA, stable expected June '20 see [MediaWiki version lifecycle](https://www.mediawiki.org/wiki/Version_lifecycle)*
 - `vX.Y.Z-dbN` [Build Releases](https://github.com/d8sychain/docker-mediawiki/releases)
 
 ## Features
 
-- [MediaWiki](https://www.mediawiki.org) v1.33.2  *(v1.34.0 expected Late Dec '19)*
-- [Nginx](https://www.nginx.com) 1.16.1
-- [PHP-FPM](https://www.php.net/manual/en/book.fpm.php) with [PHP](https://www.mediawiki.org/wiki/Compatibility#PHP) 7.3.11
-- [Parsoid](https://www.mediawiki.org/wiki/Parsoid) running on [NodeJS](https://nodejs.org) 10.16.3
+- [MediaWiki](https://www.mediawiki.org)
+- [Nginx](https://www.nginx.com)
+- [PHP-FPM](https://www.php.net/manual/en/book.fpm.php) with [PHP](https://www.mediawiki.org/wiki/Compatibility#PHP)
+- [Parsoid](https://www.mediawiki.org/wiki/Parsoid) running on [NodeJS](https://nodejs.org)
+- [SQLite](https://www.sqlite.org)
+- [MariaDB](https://www.mariadb.org) *optional*
 - [APCu](https://www.php.net/manual/en/book.apcu.php) PHP caching [*see MediaWiki Perfomance Tuning*](https://www.mediawiki.org/wiki/Manual:Performance_tuning#Object_caching)
-- [International Components for Unicode](http://site.icu-project.org/) 64.2 for Unicode normalization
-- [Lua](http://www.lua.org) 5.1.x
+- [International Components for Unicode](http://site.icu-project.org/) for Unicode normalization
+- [Lua](http://www.lua.org)
 - [ImageMagick](https://imagemagick.org/) for thumbnail generation
 - [GNU Diffutils](https://www.gnu.org/software/diffutils/)
 - Configured with [Short URLs](https://www.mediawiki.org/wiki/Manual:Short_URL)
 - [ExtensionManager](#extensionmanager) for adding and removing extension
 - Supports [SQLite](https://www.sqlite.org/index.html), [MySQL](https://www.mysql.com/), [MariaDB](https://mariadb.com/), [PostgreSQL](https://www.postgresql.org) databases
-- For a complete list of installed packages and thier version see /path/to/store/log/packages.list
+- For a complete list of installed packages and their version see [Package List](https://github.com/d8sychain/docker-mediawiki/blob/master/docs/packages.list)
 
 ### Extensions
 MediaWiki comes with a number of extensions bundled in by default since version 1.18.
@@ -151,21 +156,54 @@ Edit the container name, port numbers, variables, and host paths as needed.
 
 You can also include `-v /path/to/store/file uploads:/assets` in the MediaWiki container to use an alternet storage location for file uploads in your wiki.
 
+### Database Options
+
+MediaWiki works with a number of databases, SQLite, MySQL, MariaDB, PostgreSQL, see [MediaWiki database compatibility](https://www.mediawiki.org/wiki/Manual:Installation_requirements#Database_server) for additional info.
+
+**Note: Some extensions do not work with SQLite. It is possible to switch from SQLite to MySQL or MariaDB but that is beyond the scope of this documentation and support.**
+
+If you are new to using a database or not sure what to use, MySQL or MariaDB is the recommended database for full compatibility with MediaWiki.
+
+MySQL and MariaDB (forked from MySQL) are basically the same thing (research the difference, [Wikipedia uses MariaDB](https://en.wikipedia.org/wiki/Special:Version)).
+
+This docker has SQLite built-in and the option to add MariaDB fully configured, providing a one-container-does-it-all approuch.
+
+If you don't use one of the built in database options, then you also need to add a database docker container or have a database to connect too.
+
+#### MariaDB add-on option
+
+To use the MariaDB add-on option, add `-e MYSQL_INSTALL_OPTION=true` to the docker run command, or for UnRaid users, edit the template.
+
+Setting MYSQL_INSTALL_OPTION to *true* will cause scripts to run during container startup that will, install MariaDB, initialize the databases, configure MariaDB, set root password and other options, and start the MySQL daemon.
+
+**Note: If MYSQL_INSTALL_OPTION is not set to *true* or changed after databases are set up, the MySQL daemon will not start.**
+
+**Note: Changing the MYSQL_ROOT_PASSWORD variable after the container has set up the initial databases has no effect, use the mysqladmin tool to change your MariaDB password.**
+
+**Note: If you want to use (MYSQL_DATABASE, MYSQL_USER, MYSQL_PASSWORD) all three of these variables need to be set, you can not use just some of them.**
+
+| Parameter | Function |
+| :----: | --- |
+| `-e MYSQL_INSTALL_OPTION=false` | Set this to `true` to install MariaDB and use it with-in this docker. Not needed if using an external database. |
+| `-e MYSQL_ROOT_PASSWORD=ROOT_ACCESS_PASSWORD` | Set this to root password for installation (minimum 4 characters). If not set `ROOT_ACCESS_PASSWORD` will be used. |
+| `-e MYSQL_DATABASE=USER_DB_NAME` | Optional: Specify the name of a database to be created on image startup. |
+| `-e MYSQL_USER=MYSQL_USER` | Optional: This user will have superuser access to the database specified by MYSQL_DATABASE (do not use root here). |
+| `-e MYSQL_PASSWORD=DATABASE_PASSWORD` | Optional: Set this to the password you want to use for you MYSQL_USER (minimum 4 characters). |
+
 ### With UnRaid
 
 For users new to Docker on [UnRaid](https://unraid.net/) see [All about Docker in unRAID. Docker principles and setup](https://youtu.be/ISJczs06pD8?t=492) by [Spaceinvader One](https://www.youtube.com/channel/UCZDfnUn74N0WeAPvMqTOrtA). This video is a little old so most likely your UI will vary, but all of the information is still relevant. Also this link is skipped ahead starting with information about appdata and where docker will store appdata (MediaWiki and all of its configurations).
 
 On UnRaid with the [Community Applications](https://forums.unraid.net/topic/38582-plug-in-community-applications/) plug-in use the **APPS** tab and search for `d8sychain mediawiki` then click install. Edit the template if needed and click **Apply**
 
-If you are not using SQLite then you also need to add a MySQL, MariaDB or PostgreSQL docker container. (recommended for large databases)
-
 ### With SQLite
+
+See [KNOWNISSUES.md](https://github.com/d8sychain/docker-mediawiki/blob/master/docs/KNOWNISSUES.md) if using SQLite
 
 Start the MediaWiki container and select SQLite during the MediaWiki installer
 
 ```
 docker run --name=mediawiki_wiki \
---link mediawiki_mysql:mediawiki_mysql \
 -p 9090:80 \
 -e PUID=99 \
 -e PGID=100 \
@@ -175,7 +213,7 @@ docker run --name=mediawiki_wiki \
 
 ### With MySQL
 
-See KNOWNISSUES.md if using MySQL 8+
+See [KNOWNISSUES.md](https://github.com/d8sychain/docker-mediawiki/blob/master/docs/KNOWNISSUES.md) if using MySQL 8+
 
 Start a MySQL container.
 
@@ -191,7 +229,6 @@ Start MediaWiki container.
 
 ```
 docker run --name=mediawiki_wiki \
---link mediawiki_mysql:mediawiki_mysql \
 -p 9090:80 \
 -e PUID=99 \
 -e PGID=100 \
@@ -200,6 +237,23 @@ docker run --name=mediawiki_wiki \
 ```
 
 ### With MariaDB
+
+#### With one container-does-it-all
+
+Start MediaWiki container.
+
+```
+docker run --name=mediawiki_wiki \
+-p 9090:80 \
+-e PUID=99 \
+-e PGID=100 \
+-e MYSQL_INSTALL_OPTION=true \
+-e MYSQL_ROOT_PASSWORD=root_password \
+-v /path/to/store/mediawiki app data:/config \
+-d d8sychain/mediawiki
+```
+
+#### With multiple containers
 
 Start a MariaDB container.
 
@@ -215,7 +269,6 @@ Start MediaWiki container.
 
 ```
 docker run --name=mediawiki_wiki \
---link mediawiki_mysql:mediawiki_mysql \
 -p 9090:80 \
 -e PUID=99 \
 -e PGID=100 \
@@ -225,7 +278,7 @@ docker run --name=mediawiki_wiki \
 
 ### With PostgreSQL
 
-See KNOWNISSUES.md if using MediaWiki installer.
+See [KNOWNISSUES.md](https://github.com/d8sychain/docker-mediawiki/blob/master/docs/KNOWNISSUES.md) if using MediaWiki installer.
 
 Start a PostgreSQL container.
 
@@ -243,7 +296,6 @@ Start MediaWiki container.
 
 ```
 docker run --name=mediawiki_wiki \
---link mediawiki_mysql:mediawiki_mysql \
 -p 9090:80 \
 -e PUID=99 \
 -e PGID=100 \
@@ -251,8 +303,41 @@ docker run --name=mediawiki_wiki \
 -d d8sychain/mediawiki
 ```
 
-
 You should be able to browse your wiki at [http://localhost:9090](http://localhost:9090) or `http://*server-ip*:9090`
+
+
+## Parameters
+
+Container images are configured using parameters passed at runtime (such as those above). These parameters are separated by a colon and indicate `<external>:<internal>` respectively. For example, `-p 8080:80` would expose port `80` from inside the container to be accessible from the host's IP on port `8080` outside the container.
+
+| Parameter | Function |
+| :----: | --- |
+| `-p 9090:80` | http |
+| `-e PUID=99` | for UserID - see below for explanation. |
+| `-e PGID=100` | for GroupID - see below for explanation. |
+| `-e TZ="America/New_York"` | Specify a timezone to use. |
+| `-e UPGRADE_MEDIAWIKI=disable` | Set this to *enable* to allow MediaWiki upgrades from newer docker images - see [Upgrading](#upgrading) for explanation. |
+| `-e APK_UPGRADE=false` | Set this to *true* to **update** repository indexes from all remote repositories and **upgrade** currently installed packages to match repositories on each container start |
+| `-v /config` | Contains your www content and all relevant configuration files. |
+| **MariaDB add-on options** |
+| `-e MYSQL_INSTALL_OPTION=false` | Set this to `true` to install MariaDB and use it with-in this docker. Not needed if using an external database. |
+| `-e MYSQL_ROOT_PASSWORD=ROOT_ACCESS_PASSWORD` | Set this to root password for installation (minimum 4 characters). If not set `ROOT_ACCESS_PASSWORD` will be used. |
+| `-e MYSQL_DATABASE=USER_DB_NAME` | Optional: Specify the name of a database to be created on image startup. |
+| `-e MYSQL_USER=MYSQL_USER` | Optional: This user will have superuser access to the database specified by MYSQL_DATABASE (do not use root here). |
+| `-e MYSQL_PASSWORD=DATABASE_PASSWORD` | Optional: Set this to the password you want to use for you MYSQL_USER (minimum 4 characters). |
+
+### User / Group Identifiers
+
+When using volumes (`-v` flags) permissions issues can arise between the host OS and the container, we avoid this issue by allowing you to specify the user `PUID` and group `PGID`.
+
+Ensure any volume directories on the host are owned by the same user you specify and any permissions issues will vanish like magic.
+
+In this instance `PUID=1000` and `PGID=1000`, to find yours use `id user` as below:
+
+```
+  $ id username
+    uid=1000(dockeruser) gid=1000(dockergroup) groups=1000(dockergroup)
+```
 
 
 ## HTTPS
@@ -279,13 +364,16 @@ Note: When upgrading build versions, changes to configuration files will not ove
 
 **LocalSettings.php** is created/generated by the MediaWiki installer.
 
-- NGINX `/config/nginx/nginx.conf`
-- PHP-FPM `/config/php/php-fmp.conf`
-- PHP `/config/php/php.ini`
-- Parsoid `/config/parsoid/config.yaml`
-- MediaWiki `/config/www/mediawiki/LocalSettings.php`
-- MediaWiki `/config/www/mediawiki/LocalSettings_Extras.php`
-- MediaWiki `/config/www/mediawiki/LocalSettings_Extensions.php`
+| Service | Path |
+| :----: | --- |
+| NGINX | `/config/nginx/nginx.conf` |
+| PHP-FPM | `/config/php/php-fmp.conf` |
+| PHP  | `/config/php/php.ini` |
+| Parsoid | `/config/parsoid/config.yaml` |
+| MediaWiki | `/config/www/mediawiki/LocalSettings.php` |
+| MediaWiki | `/config/www/mediawiki/LocalSettings_Extras.php` |
+| MediaWiki | `/config/www/mediawiki/LocalSettings_Extensions.php` |
+| MariaDB | `/config/mysql/custom.cnf` (if using MariaDB add-on option) |
 
 ### General
 
@@ -358,7 +446,7 @@ The default skins are packaged with MediaWiki:
 * timeless
 * vector
 
-You can add more [skins](https://www.mediawiki.org/wiki/Manual:Skins) by downloading and adding them to `/confing/www/mediawiki/skins` and enable as per the skin's installation instructions. Add additional configurations to `/config/www/mediawiki/LocalSettings.php`
+You can add more [skins](https://www.mediawiki.org/wiki/Manual:Skins ) by downloading and adding them to `/confing/www/mediawiki/skins` and enable as per the skin's installation instructions. Add additional configurations to `/config/www/mediawiki/LocalSettings.php`
 
 ### Default User Options
 
@@ -374,7 +462,7 @@ $wgDefaultUserOptions['timecorrection'] = '0';		// A fixed timezone offset or Zo
 
 ### Additional Extensions
 
-You can add more [extensions](https://www.mediawiki.org/wiki/Manual:Skins) by downloading and adding them to `/config/www/mediawiki/extensions` and enable as per the extension's installation instructions. Add additional configurations to `/config/www/mediawiki/LocalSettings_Extensions.php`
+You can add more [extensions](https://www.mediawiki.org/wiki/Manual:Extensions ) by downloading and adding them to `/config/www/mediawiki/extensions` and enable as per the extension's installation instructions. Add additional configurations to `/config/www/mediawiki/LocalSettings_Extensions.php`
 
 You can also use ExtensionManager *see [Managing Extensions With ExtensionManager](#adding-extensions-with-extensionmanager)*
 
@@ -515,7 +603,7 @@ For example:
 
 It is highly recommended that you **maintain a backup of your database** before enabling upgrading. (*you should maintain a backup of your database anyways*)
 
-If using SQLite with MediaWiki the database will be backed up along with MediaWiki if using the default database directory.
+If using SQLite or built-in MariaDB add-on with MediaWiki the database will be backed up along with MediaWiki if using the default database directory.
 
 If using tag `latest`, it will have the newest packages installed. See `/config/log/package.list` for a list of installed packages and their versions.
 

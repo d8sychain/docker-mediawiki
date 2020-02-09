@@ -1,2 +1,12 @@
-/dev
++# ignore folders
+.git
+assets
+dev
+docs
+
+# ignore reference files
 *.reference
+
+# ignore all markdown files (md) beside all README*.md other than README-secret.md
+*.md
+!README*.md

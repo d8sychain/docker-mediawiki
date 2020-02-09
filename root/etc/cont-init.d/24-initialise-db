@@ -1,38 +1,38 @@
 #!/usr/bin/with-contenv bash
 
+#########################################
+##   based on code by linuxserver.io   ##
+##  giving credit where credit is due  ##
+#########################################
+
 # mysql install option
 if [ $MYSQL_INSTALL_OPTION == true ]
 	then
-		# set start function that creates user and password, used later
-		start_mysql(){
-		mysqld --init-file="$tempSqlFile" &
-		pid="$!"
-		RET=1
-		while [[ RET -ne 0 ]]; do
-		mysql -uroot -e "status" > /dev/null 2>&1
-		RET=$?
-		sleep 1
-		done
-		}
-
 		# test for existence of mysql file in dbdatadir and start initialise if not present
-		if [ ! -d "$DBDATADIR/mysql" ]
+		if [ ! -d "$MYSQL_DBDATA_PATH/mysql" ]
 			then
-				# load env file if it exists
-				if [ -f "/config/env" ]
-					then
-						source /config/env
-				fi
-
-			# set basic sql command
-			tempSqlFile='/tmp/mysql-first-time.sql'
-			cat > "$tempSqlFile" <<-EOSQL
+				# set start function that creates user and password, used later (line 88)
+				start_mysql(){
+					mysqld --init-file="$tempSqlFile" &
+					pid="$!"
+					RET=1
+					while [[ RET -ne 0 ]]
+						do
+							mysql -uroot -e "status" > /dev/null 2>&1
+							RET=$?
+							sleep 1
+						done
+				}
+				
+				# set basic sql command
+				tempSqlFile='/tmp/mysql-first-time.sql'
+				cat > "$tempSqlFile" <<-EOSQL
 DELETE FROM mysql.user ;
 EOSQL
 
-			# set what to display if no password set with variable MYSQL_ROOT_PASSWORD
-			NOPASS_SET='/tmp/no-pass.nfo'
-			cat > $NOPASS_SET <<-EOFPASS
+				# set what to display if no password set with variable MYSQL_ROOT_PASSWORD
+				NOPASS_SET='/tmp/no-pass.nfo'
+				cat > $NOPASS_SET <<-EOFPASS
 #################################################################
 # No root password or too short a password ,min of 4 characters #
 # No root password will be set, this is not a good thing        #
@@ -41,85 +41,63 @@ EOSQL
 #################################################################
 EOFPASS
 
-			# test for empty password variable, if it's set to 0 or less than 4 characters
-			if [ -z "$MYSQL_ROOT_PASSWORD" ]
-				then
-					TEST_LEN="0"
-				else
-					TEST_LEN=${#MYSQL_ROOT_PASSWORD}
-			fi
-			if [ "$TEST_LEN" -lt "4" ]
-				then
-					MYSQL_PASS="CREATE USER 'root'@'%' IDENTIFIED BY '' ;"
-				else
-					MYSQL_PASS="CREATE USER 'root'@'%' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}' ;"
-			fi
+				# test for empty password variable, if it's set to 0 or less than 4 characters
+				if [ -z "$MYSQL_ROOT_PASSWORD" ]
+					then
+						TEST_LEN="0"
+					else
+						TEST_LEN=${#MYSQL_ROOT_PASSWORD}
+				fi
+				if [ "$TEST_LEN" -lt "4" ]
+					then
+						MYSQL_PASS="CREATE USER 'root'@'%' IDENTIFIED BY '' ;"
+					else
+						MYSQL_PASS="CREATE USER 'root'@'%' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}' ;"
+				fi
 
-			# Make sure all user and database settings are set and pass is more than 4 characters
-			if [ "${MYSQL_USER+x}" ] && \
-			[ "${MYSQL_DATABASE+x}" ] && \
-			[ "${MYSQL_PASSWORD+x}" ] && \
-			[ "${#MYSQL_PASSWORD}" -gt "3" ]; then
-			read -r -d '' MYSQL_DB_SETUP << EOM
+				# Make sure all user and database settings are set and pass is more than 4 characters
+				if [ "${MYSQL_USER+x}" ] && \
+				[ "${MYSQL_DATABASE+x}" ] && \
+				[ "${MYSQL_PASSWORD+x}" ] && \
+				[ "${#MYSQL_PASSWORD}" -gt "3" ]; then
+				read -r -d '' MYSQL_DB_SETUP << EOM
 CREATE DATABASE \`${MYSQL_DATABASE}\`;
 CREATE USER '${MYSQL_USER}'@'%' IDENTIFIED BY '${MYSQL_PASSWORD}';
 GRANT ALL PRIVILEGES ON \`${MYSQL_DATABASE}\`.* TO '${MYSQL_USER}'@'%';
 EOM
-			fi
+				fi
 
-			# add rest of sql commands based on password set or not
-			cat >> "$tempSqlFile" <<-EONEWSQL
+				# add rest of sql commands based on password set or not
+				cat >> "$tempSqlFile" <<-EONEWSQL
 $MYSQL_PASS
 GRANT ALL ON *.* TO 'root'@'%' WITH GRANT OPTION ;
 DROP DATABASE IF EXISTS test ;
 $MYSQL_DB_SETUP
 EONEWSQL
-			echo "Setting Up Initial Databases"
+				echo "### setting up initial databases ###"
+				
+				# set some permissions needed before we begin initialising
+				chown -R abc:abc /config/log/mysql /var/run/mysqld
+				chmod -R 777 /config/log/mysql /var/run/mysqld
 
-			# add all sql from a user defined directory on first init
-			if ([ -e "/config/initdb.d" ] && [ -n "$(/bin/ls -A /config/initdb.d/*.sql 2>/dev/null)" ])
-				then
-					cat /config/initdb.d/*.sql >> "$tempSqlFile"
-			fi
+				# initialise database structure
+				mysql_install_db --datadir="$MYSQL_DBDATA_PATH"
 
-			# ingest remote sql if REMOTE_SQL is set
-			if [ -n "${REMOTE_SQL+set}" ]; then
-			  IFS=, read -ra URLS <<< "${REMOTE_SQL}"
-			  for URL in "${URLS[@]}"; do
-				if [ $(curl -I -sL -w "%{http_code}" "${URL}" -o /dev/null) == 200 ]; then
-				  curl -sL "${URL}" >> "$tempSqlFile"
+				# start mysql and apply our sql commands we set above
+				start_mysql
+
+				# shut down after apply sql commands, waiting for pid to stop
+				mysqladmin -u root shutdown
+				wait "$pid"
+				echo "### database setup completed ###"
+
+				# display a message about password if not set or too short
+				if [ "$TEST_LEN" -lt "4" ]
+					then
+						printf '\n\n\n%s\n\n\n' "$(</tmp/no-pass.nfo)"
+						sleep 5s
 				fi
-			  done
-			fi
-			
-			# set some permissions needed before we begin initialising
-			chown -R abc:abc /config/log/mysql /var/run/mysqld
-			chmod -R 777 /config/log/mysql /var/run/mysqld
-
-			# initialise database structure
-			mysql_install_db --dbdatadir="$DBDATADIR"
-
-			# start mysql and apply our sql commands we set above
-			start_mysql
-
-			# shut down after apply sql commands, waiting for pid to stop
-			mysqladmin -u root shutdown
-			wait "$pid"
-			echo "Database Setup Completed"
-
-			# display a message about password if not set or too short
-			if [ "$TEST_LEN" -lt "4" ]
-				then
-					printf '\n\n\n%s\n\n\n' "$(</tmp/no-pass.nfo)"
-					sleep 5s
-			fi
-
-			# do some more owning to finish our first run sequence
-			chown -R abc:abc "$MYSQL_DIR" /config/log/mysql
 		fi
-
-		# own the folder the pid for mysql runs in
-		chown -R abc:abc /var/run/mysqld
 
 		# clean up any old install files from /tmp
 		if [ -f "/tmp/no-pass.nfo" ]
@@ -132,5 +110,6 @@ EONEWSQL
 				rm /tmp/mysql-first-time.sql
 		fi
 
-		chown -R abc:abc /config
+		# ensure ownership is set correctly
+		chown -R abc:abc /var/run/mysqld $MYSQL_PATH /config/log/mysql
 fi

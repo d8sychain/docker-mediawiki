@@ -1,0 +1,36 @@
+#!/usr/bin/with-contenv bash
+
+# source functions
+. /etc/mw-maintenance.d/backup.func
+
+# run a backup on container start if set
+case $BACKUP_MEDIAWIKI in
+wiki)
+backup_wiki
+;;
+data)
+backup_data
+;;
+assets)
+backup_assets
+;;
+all)
+backup_all
+;;
+false)
+;;
+*)
+echo BACKUP_MEDIAWIKI=$BACKUP_MEDIAWIKI not a valid option
+;;
+esac
+
+# setup crontabs file
+chmod -R 774 /etc/cron-backups.d
+mkdir -p /config/log/cron
+chmod -R 664 /config/log/cron
+if ! grep -q 'do not remove' /etc/crontabs/root
+	then
+		rm /etc/crontabs/root
+		cp /defaults/cron/default.cron /etc/crontabs/root
+		chmod 600 /etc/crontabs/root
+fi

@@ -1,0 +1,241 @@
+
+mediawiki_check(){
+	if [ -e $MEDIAWIKI_PATH/LocalSettings.php ]
+			then
+				return 0
+			else
+				echo "### LocalSettings.php does not exist yet. ###"
+				echo "### Use the MediaWiki setup wizard or manually create LocalSettings.php first. ###"
+				return 1
+	fi
+}
+
+extension_validate(){
+	extension_name=$1
+	if [ ! "$extension_name" == "" ]
+		then
+			# check for valid extension repo
+			git ls-remote --exit-code https://gerrit.wikimedia.org/r/mediawiki/extensions/$extension_name $MEDIAWIKI_BRANCH >> /dev/null 2>&1
+			status=$?
+			if [ $status = 0 ]
+				then
+					return 0
+				else
+					echo "### not a valid extension ###"
+					return 1
+			fi
+		else
+			echo "### no extension name provided ###"
+			return 1
+	fi
+}
+
+extension_fetch(){
+	extension_name=$1
+	mkdir -p $MEDIAWIKI_EXTENSION_PATH/$extension_name && \
+	git clone \
+		--branch ${MEDIAWIKI_BRANCH} \
+		--single-branch \
+		--depth 1 \
+		https://gerrit.wikimedia.org/r/mediawiki/extensions/$extension_name \
+		$MEDIAWIKI_EXTENSION_PATH/$extension_name
+	cd $MEDIAWIKI_EXTENSION_PATH/$extension_name
+	git submodule update --init
+	rm -rf $MEDIAWIKI_EXTENSION_PATH/$extension_name/.git*
+}
+
+extension_add_wfLoad_type(){
+	extension_name=$1
+	mediawiki_check
+	if [ $? = 0 ]
+		then
+			extension_validate $extension_name
+			if [ $? = 0 ]
+				then
+					if [ -d $MEDIAWIKI_EXTENSION_PATH/$extension_name ]
+						then
+							echo "### $extension_name already exists, removing first ###"
+							extension_remove $extension_name
+					fi
+					echo "### ExtensionManager: installing $extension_name extension ###"
+					extension_fetch $extension_name			
+					sed -i "$ a \#https://www.mediawiki.org/wiki/Extension:$extension_name" $MEDIAWIKI_PATH/LocalSettings.php
+					sed -i "$ a wfLoadExtension( '$extension_name' );" $MEDIAWIKI_PATH/LocalSettings.php
+					extension_finalize $extension_name
+					extension_update_install_list
+			fi
+	fi
+}
+
+extension_add_require_type(){
+	extension_name=$1
+	mediawiki_check
+	if [ $? = 0 ]
+		then
+			extension_validate $extension_name
+			if [ $? = 0 ]
+				then
+					if [ -d $MEDIAWIKI_EXTENSION_PATH/$extension_name ]
+						then
+							echo "### $extension_name already exists, removing first ###"
+							extension_remove $extension_name
+					fi
+					echo "### ExtensionManager: installing $extension_name extension ###"
+					extension_fetch $extension_name
+					sed -i "$ a \#https://www.mediawiki.org/wiki/Extension:$extension_name" $MEDIAWIKI_PATH/LocalSettings.php
+					sed -i "$ a require_once \"\$IP/extensions/$extension_name/$extension_name.php\";" $MEDIAWIKI_PATH/LocalSettings.php
+					extension_finalize $extension_name
+					extension_update_install_list
+			fi
+	fi
+}
+
+extension_remove(){
+	extension_name=$1
+	mediawiki_check
+	if [ $? = 0 ]
+		then
+			if [ ! "$extension_name" == "" ]
+				then
+					echo "### removing $extension_name extension ###"
+					rm -rf $2 $MEDIAWIKI_EXTENSION_PATH/$extension_name
+					sed -i "/$extension_name/d" $MEDIAWIKI_PATH/LocalSettings.php
+					extension_update_install_list
+					echo "### extension $extension_name removed ###"
+				else
+					echo "No extension name provided"
+			fi
+	fi
+}
+
+extension_remove_all(){
+	echo "### removing all extensions ###"
+	rm -rf $1 $MEDIAWIKI_EXTENSION_PATH/.
+	extension_update_install_list
+	echo "### complete ###"
+}
+
+extension_upgrade(){
+	install_list=`cat $EXTENSION_MANAGER_PATH/INSTALLED`
+	for extension_name in $install_list
+		do
+			echo "### upgrading extension $extension_name ###"
+			rm -rf $MEDIAWIKI_EXTENSION_PATH/$extension_name
+			extension_fetch $extension_name
+			extension_finalize $extension_name
+		done
+}
+
+extension_finalize(){
+	extension_name=$1
+	echo "### setting permissions ###"
+	chown -R abc:abc $MEDIAWIKI_EXTENSION_PATH/$extension_name
+	chmod -R 664 $MEDIAWIKI_EXTENSION_PATH/$extension_name
+}
+
+extension_list(){
+	cd $MEDIAWIKI_EXTENSION_PATH
+	# make sure 'ls' doesn't return an error before proceeding
+	ls -d */ >> /dev/null 2>&1
+	status=$?
+	if [ $status = 0 ]  # check 'ls' status
+		then
+			dir_list=$(ls -d */)
+			# clear/set default values, values are used by other functions
+			option_list=""
+			option_array=""
+			option_num=1
+			for list in $dir_list
+				do
+					option_list="$option_num)$list"
+					option_array+="$(echo $option_list | tr -s '/ ' ' ') "
+					echo $option_list | tr -s '/' '\n'
+					((option_num++))
+				done
+		else
+			echo "### no extensions to list ###"
+			return 1
+	fi
+}
+
+extension_update_install_list(){
+	cd $MEDIAWIKI_EXTENSION_PATH
+	# make sure 'ls' doesn't return an error before proceeding
+	ls -d */ >> /dev/null 2>&1
+	status=$?
+	if [ $status = 0 ]  # check 'ls' status
+		then
+			dir_list=$(ls -d */)
+			mkdir -p $EXTENSION_MANAGER_PATH
+			echo $dir_list | tr -s '/ ' '\n' > $EXTENSION_MANAGER_PATH/INSTALLED
+			chown abc:abc $EXTENSION_MANAGER_PATH/INSTALLED
+			return 0
+		else
+			echo '' > $EXTENSION_MANAGER_PATH/INSTALLED
+			chown abc:abc $EXTENSION_MANAGER_PATH/INSTALLED
+			return 1
+	fi
+}
+
+extension_bulk_edit_setup(){
+	mediawiki_check
+	if [ $? = 0 ]
+		then
+			if [ 0 -eq $(grep -c ExtensionManager: $MEDIAWIKI_PATH/LocalSettings.php) ]
+				then
+					#Add statement if not present and LocalSettings.php has been generated
+					cat <<EOT >> $MEDIAWIKI_PATH/LocalSettings.php
+# Additional Enabled extensions.
+# The following extensions were automatically enabled by ExtensionManager:
+# Check specific extension documentation for more details.
+# Add any additional extension configurations to LocalSettings_Extensions.php
+EOT
+			fi
+	fi
+	mkdir -p $EXTENSION_MANAGER_PATH
+	[[ ! -f $EXTENSION_MANAGER_PATH/MANAGER ]] && \
+	echo '' > $EXTENSION_MANAGER_PATH/MANAGER
+	chown -R abc:abc $EXTENSION_MANAGER_PATH
+}
+
+extension_bulk_edit_run(){
+	[[ ! -f $EXTENSION_MANAGER_PATH/MANAGER ]] && \
+	extension_bulk_edit_setup
+	mediawiki_check
+	if [ $? = 0 ]
+		then
+			until [ "$(cat $EXTENSION_MANAGER_PATH/MANAGER)" == "" ] || [ "$command" == "error" ]
+			do
+				command=$(sed -n 1p $EXTENSION_MANAGER_PATH/MANAGER)
+				extension_name="${command//[\+\-\*]}"
+				# add ($wfLoadExtension) loaded extension
+				if [ $command == +$extension_name ]
+					then
+						extension_add_wfLoad_type $extension_name
+						sed -i 1d $EXTENSION_MANAGER_PATH/MANAGER
+				# add (require_once) loaded extension
+				elif [ $command == *$extension_name ]
+					then
+						extension_add_require_type $extension_name
+						sed -i 1d $EXTENSION_MANAGER_PATH/MANAGER
+				# remove extension
+				elif [ $command == -$extension_name ]
+					then
+						extension_remove $extension_name
+						sed -i 1d $EXTENSION_MANAGER_PATH/MANAGER
+				# update database
+				elif [ $command == updatedb ]
+					then
+						echo "### updating database schema ###"
+						cd $MEDIAWIKI_PATH/maintenance
+						php update.php
+						sed -i 1d $EXTENSION_MANAGER_PATH/MANAGER
+				else
+					echo "### ExtensionManager: command not specified."
+					echo "### ExtensionManager: correct MANAGER file and try again."
+					echo "### See README for additional help."
+					command="error"
+				fi
+			done
+	fi
+}

@@ -1,4 +1,4 @@
-FROM lsiobase/nginx:3.10
+FROM lsiobase/nginx:3.11
 # set version label
 ARG BUILD_DATE
 ARG VERSION
@@ -6,11 +6,13 @@ LABEL build_version="version:- ${VERSION} Build-date:- ${BUILD_DATE}"
 LABEL maintainer="d8sychain"
 # environment settings
 ENV APK_UPGRADE=false
+## Parsiod environment settings
 ENV PARSOID_VERSION=v0.10.0
 ENV PARSOID_HOME=/var/lib/parsoid
 ENV PARSOID_USER=parsoid
 ENV PARSOID_WORKERS=1
 ENV NODE_PATH=$PARSOID_HOME
+## MediaWiki environment settings
 ENV MEDIAWIKI_VERSION_MAJOR=1
 ENV MEDIAWIKI_VERSION_MINOR=33
 ENV MEDIAWIKI_VERSION_BUGFIX=2
@@ -21,6 +23,14 @@ ENV MEDIAWIKI_PATH=/config/www/mediawiki
 ENV MEDIAWIKI_EXTENSION_PATH=$MEDIAWIKI_PATH/extensions
 ENV EXTENSION_MANAGER_PATH=/config/ExtensionManager
 ENV UPGRADE_MEDIAWIKI=disable
+## MySQL environment settings
+ENV MYSQL_INSTALL_OPTION=false
+ENV MYSQL_PATH=/config/mysql
+ENV MYSQL_DBDATA_PATH=$MYSQL_PATH/databases
+ENV MYSQL_ROOT_PASSWORD=ROOT_ACCESS_PASSWORD
+## Backup environment settings
+ENV BACKUP_MEDIAWIKI=false
+ENV BACKUP_PATH=/config/backup
 # copy local files
 COPY root/ /
 # build image - start
@@ -32,6 +42,7 @@ RUN \
 		tar && \
 	echo "**** install runtime packages ****" && \
 		apk add --no-cache --upgrade \
+		htop \
 		php7-xmlreader \
 		php7-dom \
 		php7-intl \
@@ -193,4 +204,4 @@ RUN \
 # build image - end
 # ports and volumes
 EXPOSE 80
-VOLUME /config /assets
+VOLUME /config

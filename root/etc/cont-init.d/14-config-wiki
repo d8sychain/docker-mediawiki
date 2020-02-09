@@ -5,19 +5,19 @@ mkdir -p \
 	$MEDIAWIKI_PATH \
 	/config/{log/mediawiki,log/parsoid,log/lua,nginx,php,parsoid} \
 	/run/s6/services/parsoid \
-	/assets/resources
+	/config/assets/resources
 
 # copy mediawiki files
 if [ ! -e $MEDIAWIKI_PATH/index.php ]
 	then
-		echo 'installing mediawiki...'
+		echo '### installing mediawiki... ###'
 		cp -r $MEDIAWIKI_STORAGE_PATH/. $MEDIAWIKI_PATH
 fi
 
 # include extra mediawiki settings
 if [ -e $MEDIAWIKI_PATH/LocalSettings.php ] && [ ! -e $MEDIAWIKI_PATH/LocalSettings_Extras.php ]
 	then
-		echo 'adding extra settings'
+		echo '### adding extra settings ###'
 		cp /defaults/mediawiki/LocalSettings_Extras.php $MEDIAWIKI_PATH/LocalSettings_Extras.php
 		sed -i "$ a # Load extra settings" $MEDIAWIKI_PATH/LocalSettings.php
 		sed -i "$ a require 'LocalSettings_Extras.php';" $MEDIAWIKI_PATH/LocalSettings.php
@@ -26,14 +26,26 @@ fi
 # include extension mediawiki settings
 if [ -e $MEDIAWIKI_PATH/LocalSettings.php ] && [ ! -e $MEDIAWIKI_PATH/LocalSettings_Extensions.php ]
 	then
-		echo 'adding extension settings'
+		echo '### adding extension settings ###'
 		cp /defaults/mediawiki/LocalSettings_Extensions.php $MEDIAWIKI_PATH/LocalSettings_Extensions.php
 		sed -i "$ a # Load extension settings" $MEDIAWIKI_PATH/LocalSettings.php
 		sed -i "$ a require 'LocalSettings_Extensions.php';" $MEDIAWIKI_PATH/LocalSettings.php
 fi
 
+# comment out default $wgLogo in LocalSettings.php to avoid conflict with LocalSettings_Extras.php
+[[ -f $MEDIAWIKI_PATH/LocalSettings.php ]] && \
+	sed -i "s/^\$wgLogo/\#$\wgLogo/g" $MEDIAWIKI_PATH/LocalSettings.php
+
+# Add default logo if missing
+[[ ! -f /config/assets/logo.png ]] && \
+	cp $MEDIAWIKI_STORAGE_PATH/resources/assets/mediawiki.png /config/assets/resources/logo.png
+	
+# Add default favicon if missing
+[[ ! -f /config/assets/favicon.ico ]] && \
+	cp $MEDIAWIKI_STORAGE_PATH/resources/assets/mediawiki.png /config/assets/resources/favicon.ico
+
 # copy config files
-echo 'copying config files...'
+echo '### copying config files... ###'
 # nginx
 [[ ! -f /config/nginx/nginx.conf ]] && \
 	cp /defaults/nginx/wiki-nginx.conf /config/nginx/nginx.conf && \
@@ -46,13 +58,14 @@ echo 'copying config files...'
 [[ ! -f /config/php/www2.conf ]] && \
 	cp /defaults/php/php-fpm.conf /config/php/www2.conf && \
 	echo 'default php-fpm.conf copied'
-# parsoid	
+# parsoid
 [[ ! -f /config/parsoid/config.yaml ]] && \
 	cp /defaults/parsoid/config.yaml /config/parsoid/config.yaml && \
 	echo 'default parsoid config.yaml copied'
-[[ ! -f /run/s6/services/parsoid/config.yaml ]] && \
-	cp /config/parsoid/config.yaml 	$PARSOID_HOME/config.yaml && \
-	echo 'parsoid config.yaml copied'
+[[ ! -L $PARSOID_HOME/config.yaml && -e $PARSOID_HOME/config.yaml ]] && \
+	rm $PARSOID_HOME/config.yaml
+[[ ! -L $PARSOID_HOME/config.yaml ]] && \
+	ln -s /config/parsoid/config.yaml $PARSOID_HOME/config.yaml
 
 # set set execute permissions for mediawiki extentions
 chmod a+x $MEDIAWIKI_PATH/extensions/SyntaxHighlight_GeSHi/pygments/pygmentize
@@ -66,11 +79,8 @@ if [ ! -d $MEDIAWIKI_PATH/extensions/TemplateStyles/vendor ]
 		chown -R abc:abc $MEDIAWIKI_PATH/extensions/TemplateStyles
 fi
 
-# set permissions for mediawiki default directory for file uploads
-chmod -R a=rw $MEDIAWIKI_PATH/images
-
 # set ownership and permissions for mediawiki to use docker volume /assets directory for file uploads
-chown -R abc:abc /assets
-chmod -R a=rw /assets
+chown -R abc:abc /config/assets
+chmod -R 664 /config/assets
 
 

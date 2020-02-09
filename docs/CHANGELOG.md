@@ -5,6 +5,74 @@ CHANGELOG
 	* If you want the newest version of a config file, delete or rename your old file first.
 	* Then restart the container and the new config file will be added, then you can merge any customizations that you may have made in your original file.
 
+
+## 2020-02-09
+* Bumping to Alpine v3.11 (lsiobase/nginx:3.11)
+	* This will also upgrade numerous Alpine packages
+* Dockerfile: Added htop package
+* Renamed files
+	* /etc/cont-init.d/15-config-wiki        > 14-config-wiki
+	* /etc/cont-init.d/17-extension-manager  > 18-extension-manager
+* Added option to add MariaDB(MySQL) built into the container, providing a one-container-does-all (***NEW FEATURE***)
+	* Dockerfile: Added additional ENV variables
+	* Added new files:
+		* /defaults/mysql/default.cnf
+		* /etc/cont-init.d/22-config-db
+		* /etc/cont-init.d/24-initialize-db
+		* /etc/services.d/mariadb/run
+	* 16-upgrade: Added temporary start of mysqld to run MediaWiki maintenance script update.php during MediaWiki upgrade if using the MariaDB add-in
+* Merged /etc/cont-init.d/14-upgrade code into 16-upgrade
+* MediaWiki Maintenance CLI Menu (***NEW FEATURE***)
+	* Extension management
+	* Backup management
+	* Database management
+	* Services management
+* ExtensionManager (***ENHANCED FEATURE***)
+	* Moved various code in to functions in extension-manager.func for added flexibility
+	* Added additional functions to extension-manager.func
+	* Added error checking for trying to add non existent extension names 
+	* Changed /etc/cont-init/18-extension-manager to call functions
+* Backup functions (***NEW FEATURE***)
+	* Perform various backups
+	* Option to call various backup functions on each container start
+	* Restore and remove existing backups
+	* Remove existing backups by age
+	* Rename backups
+	* Ability to schedule backup functions with crontabs
+	* Dockerfile: Added additional ENV variables
+	* Added new files
+		* /etc/cont-init.d/12-backup
+		* /etc/cron-backups.d/backup_all
+		* /etc/cron-backups.d/backup_assets
+		* /etc/cron-backups.d/backup_configs
+		* /etc/cron-backups.d/backup_data
+		* /etc/cron-backups.d/backup_remove_old
+		* /etc/cron-backups.d/backup_wiki
+		* /etc/mw-maintenance.d/backup.func
+* Database functions (***NEW FEATURE***)
+	* Lock and unlock database
+	* Update database schema
+* Services functions (***NEW FEATURE***)
+	* Edit configuration files
+	* View log files
+	* Follow log files live
+	* Restart services
+	* View running processes with htop
+* MediaWiki file upload, logo, favicon settings changed
+	* Changed NGINX config/default/nginx/wiki-nginx.conf
+	* 14-config-wiki: Added code to comment out $wgLogo in LocalSettings.php
+	* LocalSettings_Extras.php: Set new default $wgUploadPath and $wgUploadDirectory
+	* LocalSettings_Extras.php: Set new default wgLogo and $wgFavicon
+* Added pid file to php-fpm config
+* 14-config-wiki: Setup parsoid config file as a symlink instead of copying
+* Added /etc/cont-init/08-apklist to update apk package list before start of other scripts
+* Updated UnRaid template for mediawiki:latest
+* Added UnRaid template for mediawiki:edge
+* README.md: Added additional information
+* README.md: Removed apk package version numbers, but added link to package list
+* KNOWNISSUES.md: Added and updated information
+* GOALS.md - Updated
+
 ## 2019-12-22 v1.33.2-db7
 * Bumping MediaWiki to v1.33.2
 * Dockerfile: Added ENV MEDIAWIKI_VERSION
@@ -43,7 +111,7 @@ CHANGELOG
 * LocalSettings_Extras: Sorted configurations alphabetically
 * ExtensionManager: Added additional checks to prevent certain code from running if LocalSettings.php does not exist
 * ExtensionManager: Added function to update database
-* Cleaned up some whitespace in /root/cont-init.d/
+* Cleaned up some whitespace in /etc/cont-init.d/
 
 ## 2019-12-14 v1.33.1-db5
 
@@ -71,7 +139,7 @@ CHANGELOG
 	* Remove line 163 **# Load extra settings** and line 164 **require ExtraLocalSettings.php';** from **LocalSettings.php**
 	* Restart the container.
 * Removed extension **ExtensionDistributor** and associated configurations
-* Developed and added **ExtensionManager** to simply adding or removing extensions
+* Developed and added **ExtensionManager** to simply adding or removing extensions (***NEW FEATURE***)
 * Updated upgrade scripts to tie in with **ExtensionManager**
 * Split **ExtraLocalSettings.php** into two different files **LocalSettings_Extras.php** and **LocalSettings_Extensions.php**
 * Minor changes to **LocalSettings_Extras.php** and **LocalSettings_Extensions.php**
@@ -87,7 +155,7 @@ CHANGELOG
 ## 2019-10-15 v1.33.1-db2
 
 * Added poppler-utils fix for extension PdfHandler
-* Fixed typo in cont-init.d script 15-config-wiki
+* Fixed typo in /etc/cont-init.d/15-config-wiki
 
 
 ## 2019-10-15 v1.33.1-db1

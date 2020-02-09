@@ -10,14 +10,14 @@
   <Support>https://forums.unraid.net/topic/84304-support-d8sychain-mediawiki/</Support>
   <Project>https://www.mediawiki.org</Project>
   <Overview>MediaWiki with WYSIWYG VisualEditor extension and Parsoid service. Built with Alpine, S6-overlay, NGINX, PHP-FPM with PHP 7.3, NodeJS, along with other extensions.</Overview>
-  <Category>Cloud: Productivity: Tools: Network:Web Status:Beta</Category>
+  <Category>Cloud: Productivity: Tools: Network:Web</Category>
   <WebUI>http://[IP]:[PORT:9090]</WebUI>
   <TemplateURL>https://raw.githubusercontent.com/d8sychain/docker-mediawiki/master/template/mediawiki.xml</TemplateURL>
   <Icon>https://raw.githubusercontent.com/d8sychain/docker-mediawiki/master/assets/mediawiki-icon.png</Icon>
   <ExtraParams/>
   <PostArgs/>
   <CPUset/>
-  <DateInstalled>1571108981</DateInstalled>
+  <DateInstalled></DateInstalled>
   <DonateText/>
   <DonateLink/>
   <Description>MediaWiki with WYSIWYG VisualEditor extension and Parsoid service. Built with Alpine, S6-overlay, NGINX, PHP-FPM with PHP 7.3, NodeJS, along with other extensions.</Description>
@@ -67,4 +67,7 @@
   <Config Name="File Uploads" Target="/assets" Default="" Mode="rw" Description="OPTIONAL: Set a host path to use an alternate location for file uploads. Default container path: /config/www/mediawiki/images&amp;lt;/br&amp;gt;&#13;&#10;Container Path: /data" Type="Path" Display="always" Required="false" Mask="false"/>
   <Config Name="Allow Mediawiki Upgrades" Target="UPGRADE_MEDIAWIKI" Default="disable" Mode="" Description="Allow MediaWiki to automatically be upgraded with new docker images.&amp;lt;/br&amp;gt;&#13;&#10;Set 'enable' to allow upgrades." Type="Variable" Display="always" Required="false" Mask="false"/>
   <Config Name="Config" Target="/config" Default="/mnt/user/appdata/mediawiki" Mode="rw" Description="Container Path: /config" Type="Path" Display="always-hide" Required="true" Mask="false"/>
+  <DonateText>Donations</DonateText>
+  <DonateLink>https://paypal.me/d8sychain</DonateLink>
+  <DonateImg>https://raw.githubusercontent.com/d8sychain/docker-mediawiki/master/assets/donate.png</DonateImg>
 </Container>

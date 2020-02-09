@@ -8,9 +8,12 @@ GOALS
 	- ~~Move extension configurations into thier own file~~
 	- ~~Possibly move other setting into thier own file as well~~
 - ~~An automatic extension installer (evolved into ExtensionManager)~~
-- Improve/Simplify file uploads storage
+- ~~Improve/Simplify file uploads storage~~
 - ~~Configure/test Email use~~
 - ~~ExtensionManager: Add ability to update database needed for some extensions~~
+- ~~Option to add built in MySQL database~~
+- ~~Add backup functions~~
+- ~~Add cli menu to perform certain maintenance operations~~
 - Test all extensions
 	
 	Special Pages

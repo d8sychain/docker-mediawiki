@@ -1,12 +1,20 @@
 #!/usr/bin/with-contenv bash
 
-_term() {
-  echo "Caught SIGTERM signal!"
-  kill -TERM "$(cat /var/run/mysqld/mysqld.pid)" 2>/dev/null
-}
+#########################################
+##   based on code by linuxserver.io   ##
+##  giving credit where credit is due  ##
+#########################################
 
-        trap _term SIGTERM
+if [ $MYSQL_INSTALL_OPTION == true ]
+	then
+		_term() {
+		  echo "Caught SIGTERM signal!"
+		  kill -TERM "$(cat /var/run/mysqld/mysqld.pid)" 2>/dev/null
+		}
 
-        s6-setuidgid abc /usr/bin/mysqld_safe &
+		trap _term SIGTERM
 
-        wait
+		s6-setuidgid abc /usr/bin/mysqld_safe &
+
+		wait
+fi

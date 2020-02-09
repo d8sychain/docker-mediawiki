@@ -1,0 +1,21 @@
+file_upload_import(){
+# place holder
+}
+
+file_upload_refresh(){
+cd /config/www/mediawiki/maintenance/
+php refreshImageMetadata.php -f
+php rebuildImages.php
+}
+
+file_upload_enable(){
+# place holder
+}
+
+file_upload_url(){
+# place holder
+}
+
+email_config(){
+# place holder
+}

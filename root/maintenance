@@ -1,0 +1,731 @@
+#!/usr/bin/with-contenv bash
+
+# variables
+extention_name=null
+
+# source functions
+. /etc/mw-maintenance.d/extension-manager.func
+. /etc/mw-maintenance.d/backup.func
+. /etc/mw-maintenance.d/database.func
+. /etc/mw-maintenance.d/services.func
+
+# functions
+load_header(){
+	clear
+	echo "#####################################"
+	echo "##                                 ##"
+	echo "##      MediaWiki Maintenance      ##"
+	echo "##                                 ##"
+	echo "##$menu_title##"
+	echo "##                                 ##"
+	echo "#####################################"
+	echo
+}
+
+press_to_continue(){
+	echo
+	read -p 'press enter to continue...' null
+}
+
+not_valid_option(){
+	echo "Not a valid option"
+	sleep 2
+}
+
+select_option(){
+	# pick out selected name from numbered array of list
+	selected_number=$1
+	pattern="[0-9]"
+	# single character selections won't match/assign 
+	if [[ "$selected_number" =~ $pattern ]] && [[ $selected_number -lt $option_num ]] && [[ $selected_number -gt 0 ]]
+		then
+			if [ "$(sed -rn "s/.*^$selected_number\)([A-Za-z0-9\_]\S+|[A-Za-z0-9\_]).*/\1/p" <<<"$option_array")" == "" ]
+				then
+					# assign numbers 2 through ...
+					selected_name="$(sed -rn "s/.* $selected_number\)([A-Za-z0-9\_]\S+|[A-Za-z0-9\_]).*/\1/p" <<<"$option_array")"
+				else
+					# assign number 1
+					selected_name="$(sed -rn "s/.*^$selected_number\)([A-Za-z0-9\_]\S+|[A-Za-z0-9\_]).*/\1/p" <<<"$option_array")"
+			fi
+		else
+			echo "Not a valid selection"
+			return 1
+	fi
+	if [ "$selected_name" == "" ]
+		then
+			echo "Error with selected name"
+			return 2
+	fi
+}
+
+# sub menus
+extension_manager_submenu(){
+	submenuL1_option=0
+	until [ $submenuL1_option = 7 ]
+		do			  
+					  ##6     MediaWiki Maintenance     6##
+					  ##8       Extension Manager       8##
+			menu_title="        Extension Manager        "
+			load_header
+			echo "1) Add wfLoadExtension Type"
+			echo "2) Add requireExtension Type"
+			echo "3) Remove Extension"
+			echo "4) Bulk Changes"
+			echo "5) Update Database"
+			echo "6) List Installed Extensions"
+			echo "7) Back"
+			echo
+			read -p 'Option: ' submenuL1_option
+			echo
+			case $submenuL1_option in
+						1)
+						echo "Add wfLoadExtension Type"
+						read -p 'Enter extention name: ' extention_name
+						extension_add_wfLoad_type $extention_name
+						press_to_continue
+						;;
+						
+						2)
+						echo "Add requireExtension Type"
+						read -p 'Enter extention name: ' extention_name
+						extension_add_require_type $extention_name
+						press_to_continue
+						;;
+						
+						3)
+						echo "Remove Extension"
+						extension_list
+						if [ $? = 0 ] # if list_extension returns 0
+							then
+								echo
+								echo "ALL) Remove all"
+								echo
+								read -p 'Enter a number or ALL: ' extension_number
+								if [ "$extension_number" == "ALL" ]
+									then
+										read -p 'Are you sure Y/n? ' certainty
+										if [ "$certainty" == "Y" ]
+											then
+												read -p 'Verbose: Y/n? ' sub_option
+												if [ "$sub_option" == "Y" ]
+													then
+														extension_remove_all -v
+													else
+														extension_remove_all
+												fi
+											else
+												echo "Cancelled"
+										fi
+									else							
+										echo
+										select_option $extension_number
+										if [ $? = 0 ]
+											then
+												read -p 'Verbose: Y/n? ' sub_option
+												if [ "$sub_option" == "Y" ]
+													then
+														extension_remove $selected_name -v
+													else
+														extension_remove $selected_name
+												fi
+										fi
+								fi
+						fi
+						press_to_continue
+						;;
+						
+						4)
+						extension_manager_bulk_submenu
+						;;
+						
+						5)
+						echo "Update Database"
+						update_db
+						press_to_continue
+						;;
+						
+						6)
+						echo "List Installed Extensions"
+						extension_list
+						press_to_continue
+						;;
+						
+						7)
+						;;
+						
+						*)
+						not_valid_option
+						;;
+					esac
+		done
+	return
+}
+
+extension_manager_bulk_submenu(){
+	submenuL2_option=0
+	until [ $submenuL2_option = 4 ]
+		do			  
+					  ##6     MediaWiki Maintenance     6##
+					  ##7      Extension Bulk Edit      7##
+			menu_title="       Extension Bulk Edit       "
+			load_header
+			echo "1) Bulk Edit"
+			echo "2) Run Bulk Edit"
+			echo "3) Help"
+			echo "4) Back"
+			echo
+			read -p 'Option: ' submenuL2_option
+			echo
+			case $submenuL2_option in
+						1)
+						# echo "Bulk Edit"
+						nano $EXTENSION_MANAGER_PATH/MANAGER
+						;;
+						
+						2)
+						echo "Run Bulk Edit"
+						extension_bulk_edit_run
+						press_to_continue
+						;;
+						
+						3)
+						cat /etc/mw-maintenance.d/help_bulk_edit.nfo
+						press_to_continue
+						;;
+						
+						4)
+						;;
+						
+						*)
+						not_valid_option
+						;;
+					esac
+		done
+	return
+}
+
+backup_submenu(){
+	submenuL1_option=0
+	until [ $submenuL1_option = 12 ]
+		do
+					  ##6     MediaWiki Maintenance     6##
+					  ##10        Backup Manager        9##
+			menu_title="          Backup Manager         "
+			load_header
+			echo " 1) Backup MediaWiki Files"
+			echo " 2) Backup Internal Database"
+			echo " 3) Backup Assets and Uploads"
+			echo " 4) Backup All Configuration Files"
+			echo " 5) Backup MediaWiki Files, Internal Database, Assets, Uploads, and Configuration Files"
+			echo " 6) Remove A Backup"
+			echo " 7) Remove Backups By Age"
+			echo " 8) Restore A Backup"
+			echo " 9) Rename A Backup"
+			echo "10) Edit Backup Schedule"
+			echo "11) List Backups"
+			echo "12) Back"
+			echo
+			read -p 'Option: ' submenuL1_option
+			echo
+			case $submenuL1_option in
+						1)
+						echo "Backup MediaWiki Files"
+						read -p 'Verbose: Y/n? ' sub_option
+						if [ "$sub_option" == "Y" ]
+							then
+								backup_wiki -v
+							else
+								backup_wiki
+						fi
+						press_to_continue
+						;;
+						
+						2)
+						echo "Backup Internal Database"
+						read -p 'Verbose: Y/n? ' sub_option
+						if [ "$sub_option" == "Y" ]
+							then
+								backup_data -v
+							else
+								backup_data
+						fi
+						press_to_continue
+						;;
+						
+						3)
+						echo "Backup Assets and Uploads"
+						read -p 'Verbose: Y/n? ' sub_option
+						if [ "$sub_option" == "Y" ]
+							then
+								backup_assets -v
+							else
+								backup_assets
+						fi
+						press_to_continue
+						;;
+						
+						4)
+						echo "Backup All Configuration Files"
+						read -p 'Verbose: Y/n? ' sub_option
+						if [ "$sub_option" == "Y" ]
+							then
+								backup_configs -v
+							else
+								backup_configs
+						fi
+						press_to_continue
+						;;
+						
+						5)
+						echo "Backup MediaWiki Files, Internal Database, Assets, and Uploads"
+						read -p 'Verbose: Y/n? ' sub_option
+						if [ "$sub_option" == "Y" ]
+							then
+								backup_all -v
+							else
+								backup_all
+						fi
+						press_to_continue
+						;;
+						
+						6)
+						echo "Remove A Backup"
+						echo
+						backup_list
+						if [ $? = 0 ]
+							then
+								echo
+								echo "ALL) Remove all backups starting with 'mediawiki' (default name)"
+								echo
+								read -p 'Enter a number or ALL: ' backup_number
+								if [ "$backup_number" == "ALL" ]
+									then
+										read -p 'Are you sure Y/n? ' certainty
+										if [ "$certainty" == "Y" ]
+											then
+												read -p 'Verbose: Y/n? ' sub_option
+												if [ "$sub_option" == "Y" ]
+													then
+														backup_remove_all -v
+													else
+														backup_remove_all
+												fi
+											else
+												echo "Cancelled"
+										fi
+									else							
+										select_option $backup_number
+										if [ $? = 0 ]
+											then
+												read -p 'Verbose: Y/n? ' sub_option
+												if [ "$sub_option" == "Y" ]
+													then
+														backup_remove $selected_name -v
+													else
+														backup_remove $selected_name
+												fi
+										fi
+								fi
+						fi
+						press_to_continue
+						;;
+						
+						7)
+						echo "Remove Backups By Age"
+						echo
+						backup_list
+						if [ $? = 0 ]
+							then
+								echo
+								echo "Warning: entering 0 will remove all"
+								read -p 'Enter number of days to retain: ' backup_age
+								backup_remove_old $backup_age
+								if [ $? = 1 ]
+									then
+										echo "Not valid"
+								fi
+						fi
+						press_to_continue
+						;;
+
+						8)
+						echo "Restore A Backup"
+						echo
+						backup_list
+						if [ $? = 0 ]
+							then
+								echo
+								read -p 'Enter a number: ' backup_number
+								select_option $backup_number
+								if [ $? = 0 ]
+									then
+										echo
+										echo "The following will be restored:"
+										echo
+										backup_list_content $selected_name
+										if [ $? = 0 ]
+											then
+												echo
+												read -p 'Are you sure Y/n? ' certainty
+												if [ "$certainty" == "Y" ]
+													then
+														read -p 'Verbose: Y/n? ' sub_option
+														if [ "$sub_option" == "Y" ]
+															then
+																lock_db
+																service_mysql_kill -STOP
+																backup_restore $selected_name -v
+																service_nginx_restart
+																service_phpfpm_restart
+																service_parsoid_restart
+																service_mysql_kill -CONT
+																service_mysql_restart
+																unlock_db
+															else
+																lock_db
+																service_mysql_kill -STOP
+																backup_restore $selected_name
+																service_nginx_restart
+																service_phpfpm_restart
+																service_parsoid_restart
+																service_mysql_kill -CONT
+																service_mysql_restart
+																unlock_db
+														fi
+													else
+														echo "Cancelled"
+												fi
+										fi
+								fi
+						fi
+						press_to_continue
+						;;
+						
+						9)
+						echo "Rename A Backup"
+						echo
+						backup_list
+						if [ $? = 0 ]
+							then
+								echo
+								read -p 'Enter a number: ' backup_number
+								select_option $backup_number
+								if [ $? = 0 ]
+									then
+										echo
+										echo "Use an existing name to merge backups (will overwrite data)"
+										echo "Valid characters A-Z a-z 0-9 _ . -"
+										read -p 'Enter new name: ' new_name
+										backup_rename "$selected_name" "$new_name" "$option_array"
+								fi
+						fi
+						press_to_continue
+						;;
+						
+						10)
+						backup_schedule_submenu
+						;;
+						
+						11)
+						echo "List Backups"
+						echo
+						backup_list
+						press_to_continue
+						;;
+						
+						12)
+						;;
+						
+						*)
+						not_valid_option
+						;;
+					esac
+		done
+	return
+}
+
+backup_schedule_submenu(){
+	submenuL2_option=0
+	until [ $submenuL2_option = 3 ]
+		do			  
+					  ##6     MediaWiki Maintenance     6##
+					  ##8       Backup Scheduling       8##
+			menu_title="        Backup Scheduling        "
+			load_header
+			echo "1) Edit Backup Schedule"
+			echo "2) Edit Retention Days"
+			echo "3) Back"
+			echo
+			read -p 'Option: ' submenuL2_option
+			echo
+			case $submenuL2_option in
+						1)
+						crontab -e
+						;;
+						
+						2)
+						nano /etc/cron-backups.d/backup_remove_old
+						;;
+						
+						3)
+						;;
+						
+						*)
+						not_valid_option
+						;;
+					esac
+		done
+	return
+}
+
+database_submenu(){
+	submenuL1_option=0
+	until [ $submenuL1_option = 4 ]
+		do
+					  ##6     MediaWiki Maintenance     6##
+					  ##9        Database Manager       8##
+			menu_title="         Database Manager        "
+			load_header
+			echo "1) Update Database Schema"
+			echo "2) Lock Database"
+			echo "3) Unlock Database"
+			echo "4) Back"
+			echo
+			read -p 'Option: ' submenuL1_option
+			echo
+			case $submenuL1_option in
+						1)
+						update_db
+						press_to_continue
+						;;
+						
+						2)
+						lock_db
+						press_to_continue
+						;;
+						
+						3)
+						unlock_db
+						press_to_continue
+						;;
+						
+						4)
+						;;
+						
+						*)
+						not_valid_option
+						;;
+					esac
+		done
+	return
+}
+
+services_submenu(){
+	submenuL1_option=0
+	until [ $submenuL1_option = 14 ]
+		do
+					  ##6     MediaWiki Maintenance     6##
+					  ##9        Services Manager       8##
+			menu_title="         Services Manager        "
+			load_header
+			echo "              NGINX              "
+			echo " 1) Edit NGINX Configuration"
+			echo " 2) View NGINX Access Log"
+			echo " 3) View NGINX Error Log"
+			echo " 4) Restart NGINX"
+			echo
+			echo "               PHP               "
+			echo " 5) Edit PHP Configuration"
+			echo " 6) Edit PHP-FPM Configuration"
+			echo " 7) Restart PHP-FPM"
+			echo
+			echo "             Parsiod             "
+			echo " 8) Edit Parsiod Configuration"
+			echo " 9) Restart MW Parsiod"
+			echo
+			echo "          MariaDB/MySQL          "
+			echo "10) Edit MariaDB/MySQL Configuration"
+			echo "11) View MariaDB/MySQL Error Log"
+			echo "12) Restart MariaDB/MySQL"
+			echo
+			echo "            Processes            "
+			echo "13) See Running Processes (htop)"
+			echo "14) Back"
+			echo
+			read -p 'Option: ' submenuL1_option
+			echo
+			case $submenuL1_option in
+						1)
+						# Edit NGINX Configuration
+						nano /config/nginx/nginx.conf
+						;;
+						
+						2)
+						echo "View NGINX Access Log"
+						read -p 'Live view: Y/n?' sub_option
+						if [ "$sub_option" == "Y" ]
+							then
+								echo
+								echo "press Ctrl+C to exit live view"
+								press_to_continue
+								clear
+								trap ' ' SIGINT
+								tail -f /config/log/nginx/access.log
+								trap - SIGINT
+								press_to_continue
+							else
+								clear
+								cat /config/log/nginx/access.log
+								press_to_continue
+						fi
+						;;
+						
+						3)
+						echo "View NGINX Error Log"
+						read -p 'Live view: Y/n?' sub_option
+						if [ "$sub_option" == "Y" ]
+							then
+								echo
+								echo "press Ctrl+C to exit live view"
+								press_to_continue
+								clear
+								trap ' ' SIGINT
+								tail -f /config/log/nginx/error.log
+								trap - SIGINT
+								press_to_continue
+							else
+								clear
+								cat /config/log/nginx/error.log
+								press_to_continue
+						fi
+						;;
+						
+						4)
+						# Restart NGINX
+						service_nginx_restart
+						press_to_continue
+						;;
+						
+						5)
+						# Edit PHP Configuration
+						nano /config/php/php-local.ini
+						;;
+						
+						6)
+						# Edit PHP-FPM Configuration
+						nano /config/php/www2.conf
+						;;
+						
+						7)
+						# Restart PHP-FPM
+						service_phpfpm_restart
+						press_to_continue
+						;;
+						
+						8)
+						# Edit Parsiod Configuration
+						nano /config/parsoid/config.yaml
+						;;
+						
+						9)
+						# Restart MW Parsiod
+						service_parsoid_restart
+						press_to_continue
+						;;
+						
+						10)
+						# Edit MariaDB/MySQL Configuration
+						nano /config/mysql/default.cnf
+						;;
+						
+						11)
+						echo "View MariaDB/MySQL Error Log"
+						read -p 'Live view: Y/n?' sub_option
+						if [ "$sub_option" == "Y" ]
+							then
+								echo
+								echo "press Ctrl+C to exit live view"
+								press_to_continue
+								clear
+								trap ' ' SIGINT
+								tail -f /config/log/mysql/error.log
+								trap - SIGINT
+								press_to_continue
+							else
+								clear
+								cat /config/log/mysql/error.log
+								press_to_continue
+						fi
+						;;
+						
+						12)
+						# Restart MariaDB/MySQL
+						service_mysql_restart
+						press_to_continue
+						;;
+						
+						13)
+						# See Running Processes (htop)
+						htop -t
+						;;
+						
+						14)
+						;;
+						
+						*)
+						not_valid_option
+						;;
+					esac
+		done
+	return
+}
+
+# main menu
+main_menu(){
+	menu_option=0
+	until [ $menu_option = 5 ]
+		do
+					  ##6     MediaWiki Maintenance     6##
+					  ##12          Main Menu          12##
+			menu_title="            Main Menu            "
+			load_header
+			echo "1) Extension Manager"
+			echo "2) Backups"
+			echo "3) Database"
+			echo "4) Services"
+			echo "5) Quit"
+			echo
+			read -p 'Option: ' menu_option
+			echo
+			case $menu_option in
+						1)
+						extension_manager_submenu
+						;;
+						
+						2)
+						backup_submenu
+						;;
+						
+						3)
+						database_submenu
+						;;
+						
+						4)
+						services_submenu
+						;;
+						
+						5)
+						;;
+						
+						*)
+						not_valid_option
+						;;
+					esac
+		done
+}
+
+# start
+if [ ! "$testing" == "true" ] # allow 'test' to source all functions and skip straight to a sub menu or use it's own menu
+	then
+		main_menu
+fi

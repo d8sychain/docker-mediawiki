@@ -4,6 +4,9 @@
 nice		= 0
 
 [mysqld]
+user			= abc
+datadir			= /config/mysql/databases
+pid-file		= /var/run/mysqld/mysqld.pid
 max_connections		= 100
 connect_timeout		= 5
 wait_timeout		= 600
@@ -41,10 +44,10 @@ query_cache_size		= 64M
 # Both location gets rotated by the cronjob.
 # Be aware that this log type is a performance killer.
 # As of 5.1 you can enable the log at runtime!
-#general_log_file        = /config/log/mysql/mysql.log
-#general_log             = 1
+#general_log_file	= /config/log/mysql/mysql.log
+#general_log		= 1
 #
-# Error logging goes to syslog due to /etc/mysql/conf.d/mysqld_safe_syslog.cnf.
+log_error		= /config/log/mysql/error.log
 #
 # we do want to know about network errors and such
 log_warnings		= 2
@@ -66,8 +69,8 @@ log_slow_verbosity	= query_plan
 #report_host		= master1
 #auto_increment_increment = 2
 #auto_increment_offset	= 1
-log_bin			= /config/log/mysql/mariadb-bin
-log_bin_index		= /config/log/mysql/mariadb-bin.index
+#log_bin		= /config/log/mysql/mariadb-bin
+#log_bin_index		= /config/log/mysql/mariadb-bin.index
 # not fab for performance, but safer
 #sync_binlog		= 1
 expire_logs_days	= 10
@@ -137,6 +140,3 @@ max_allowed_packet	= 16M
 
 [isamchk]
 key_buffer_size		= 16M
-
-
-

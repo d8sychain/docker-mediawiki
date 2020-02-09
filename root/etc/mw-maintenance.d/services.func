@@ -1,0 +1,63 @@
+
+service_nginx_restart(){
+	# nginx: master process*
+	proc_name="nginx: master process"
+	pid="$(cat /var/run/nginx.pid)"
+	echo "### SIGTERM $pid - $proc_name ###"
+	kill $pid
+	wait $!
+	sleep 2
+	pid="$(cat /var/run/nginx.pid)"
+	echo "### new PID is $pid"
+}
+
+service_phpfpm_restart(){
+	# *php-fpm: master process*
+	proc_name="php-fpm: master process"
+	pid="$(cat /var/run/php7-fpm/php-fpm.pid)"
+	echo "### SIGTERM $pid - $proc_name ###"
+	kill $pid
+	wait $!
+	sleep 2
+	pid="$(cat /var/run/php7-fpm/php-fpm.pid)"
+	echo "### new PID is $pid"
+}
+
+service_parsoid_restart(){
+	# *node bin/server.js parsoid*
+	proc_name="parsoid server"
+	pid=`ps | awk '/server.js parsoid/{ print $1;exit }'`
+	echo "### SIGTERM $pid - $proc_name ###"
+	kill $pid
+	wait $!
+	sleep 2
+	pid=`ps | awk '/server.js parsoid/{ print $1;exit }'`
+	echo "### new PID is $pid"
+}
+
+service_mysql_restart(){
+	# {mysqld_safe}*
+	if [ $MYSQL_INSTALL_OPTION == true ]
+		then
+			proc_name="mysqld_safe"
+			pid="$(cat /var/run/mysqld/mysqld.pid)"
+			echo "### SIGTERM $pid - $proc_name ###"
+			kill $pid
+			wait $!
+			sleep 5
+			pid="$(cat /var/run/mysqld/mysqld.pid)"
+			echo "### new PID is $pid"
+	fi
+}
+
+service_mysql_kill(){
+	# {mysqld_safe}*
+	if [ $MYSQL_INSTALL_OPTION == true ]
+		then
+			proc_name="mysqld_safe"
+			pid="$(cat /var/run/mysqld/mysqld.pid)"
+			echo "### $1 $pid - $proc_name ###"
+			kill $1 $pid
+			wait $!
+	fi
+}

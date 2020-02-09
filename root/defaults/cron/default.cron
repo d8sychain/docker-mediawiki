@@ -1,0 +1,18 @@
+# do not remove this line or this file will be replaced with defaults
+#
+# do hourly/daily/weekly/monthly maintenance
+# min	hour	day	month	weekday	command
+*/15	*	*	*	*	run-parts /etc/periodic/15min
+0	*	*	*	*	run-parts /etc/periodic/hourly
+0	2	*	*	*	run-parts /etc/periodic/daily
+0	3	*	*	6	run-parts /etc/periodic/weekly
+0	5	1	*	*	run-parts /etc/periodic/monthly
+#
+# backups and management
+# min	hour	day	month	weekday	command
+#0	0	*/1	*	*	/etc/cron-backups.d/backup_remove_old   #at 00:00 daily   #remove older than 28 days, edit /etc/backups/backup_remove_old to change age retention
+#5	0	*	*	1	/etc/cron-backups.d/backup_data		#at 00:05 Mondays
+#5	0	*	*	1	/etc/cron-backups.d/backup_assets	#at 00:05 Mondays
+#*	*	*	*	*	/etc/cron-backups.d/backup_wiki		#at every minute
+#*	*	*	*	*	/etc/cron-backups.d/backup_all		#at every minute
+#*	*	*	*	*	/etc/cron-backups.d/backup_configs	#at every minute
