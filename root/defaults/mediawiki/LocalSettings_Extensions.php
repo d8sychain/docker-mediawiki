@@ -177,14 +177,15 @@ if ( !defined( 'MEDIAWIKI' ) ) {
 
 ## VisualEditor https://www.mediawiki.org/wiki/Extension:VisualEditor
 	#wfLoadExtension('VisualEditor');
-	$wgDefaultUserOptions['visualeditor-enable'] = 1;
-	$wgVirtualRestConfig['modules']['parsoid'] = array(
-		'url' => 'http://localhost:8142',
-		'domain' => 'localhost',
-		'prefix' => ''
-	);
-	$wgSessionsInObjectCache = true;
-	$wgVirtualRestConfig['modules']['parsoid']['forwardCookies'] = true;
+	#$wgDefaultUserOptions['visualeditor-enable'] = 1;
+	// Optional: Enable a dedicated Parsoid server for larger wikis. Unnecessary for most.
+	#$wgVirtualRestConfig['modules']['parsoid'] = array(
+	#	'url' => 'http://localhost:8142',
+	#	'domain' => 'localhost',
+	#	'prefix' => ''
+	#);
+	#$wgSessionsInObjectCache = true;
+	#$wgVirtualRestConfig['modules']['parsoid']['forwardCookies'] = true;
 	// OPTIONAL: Enable VisualEditor's experimental code features
 	#$wgDefaultUserOptions['visualeditor-enable-experimental'] = 1;
 	// Parsoid athentication without forwarding cookies. Allows VisualEditor to work in private wikis.
