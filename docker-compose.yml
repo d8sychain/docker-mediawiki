@@ -1,0 +1,34 @@
+version: '3'
+services:
+  mediawiki:
+    build: 
+      context: .
+      args:
+        VERSION: latest
+    restart: always
+    ports:
+      - 80:80
+    volumes:
+      - /tmp/mwtest/mediawiki:/config
+      # After initial setup, download LocalSettings.php to the same directory as
+      # this yaml and uncomment the following line and use compose to restart
+      # the mediawiki service
+      # - ./LocalSettings.php:/var/www/html/LocalSettings.php
+    links:
+      - database
+    environment:
+      PUID: 1000
+      PGID: 1000
+  # This key also defines the name of the database host used during setup instead of the default "localhost"
+  database:
+    image: linuxserver/mariadb
+    restart: always
+    environment:
+      # @see https://phabricator.wikimedia.org/source/mediawiki/browse/master/includes/DefaultSettings.php
+      MYSQL_DATABASE: my_wiki
+      MYSQL_USER: wikiuser
+      MYSQL_PASSWORD: wikipassword
+      PUID: 1000
+      PGID: 1000
+    volumes:
+      - /tmp/mwtest/mariadb:/var/lib/mysql
