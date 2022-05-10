@@ -59,12 +59,9 @@ RUN \
 				--branch ${MEDIAWIKI_BRANCH} \
 				--single-branch \
 				--depth 1 \
+				--recursive \
 				https://gerrit.wikimedia.org/r/mediawiki/core.git \
 				$MEDIAWIKI_STORAGE_PATH && \
-			cd $MEDIAWIKI_STORAGE_PATH && \
-			git clone \
-				https://gerrit.wikimedia.org/r/mediawiki/vendor.git && \
-			git submodule update --init && \
 			rm -rf .git* && \
 # mediawiki additional extensions
 	echo "**** download mediawiki extensions ****" && \
