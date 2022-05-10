@@ -77,6 +77,15 @@ RUN \
 			https://gerrit.wikimedia.org/r/mediawiki/extensions/Maintenance \
 			$MEDIAWIKI_STORAGE_PATH/extensions/Maintenance && \
 		rm -rf $MEDIAWIKI_STORAGE_PATH/extensions/Maintenance/.git* && \
+	echo "**** download WikiSEO extension ****" && \
+		mkdir -p $MEDIAWIKI_STORAGE_PATH/extensions/WikiSEO && \
+		git clone \
+			--branch ${MEDIAWIKI_BRANCH} \
+			--single-branch \
+			--depth 1 \
+			https://gerrit.wikimedia.org/r/mediawiki/extensions/WikiSEO \
+			$MEDIAWIKI_STORAGE_PATH/extensions/WikiSEO && \
+		rm -rf $MEDIAWIKI_STORAGE_PATH/extensions/WikiSEO/.git* && \
 	echo "**** download UploadWizard extension ****" && \
 		mkdir -p $MEDIAWIKI_STORAGE_PATH/extensions/UploadWizard && \
 		git clone \
@@ -86,17 +95,6 @@ RUN \
 			https://gerrit.wikimedia.org/r/mediawiki/extensions/UploadWizard \
 			$MEDIAWIKI_STORAGE_PATH/extensions/UploadWizard && \
 		rm -rf $MEDIAWIKI_STORAGE_PATH/extensions/UploadWizard/.git* && \
-	echo "**** download VisualEditor extension ****" && \
-		mkdir -p $MEDIAWIKI_STORAGE_PATH/extensions/VisualEditor && \
-		git clone \
-			--branch ${MEDIAWIKI_BRANCH} \
-			--single-branch \
-			--depth 1 \
-			https://gerrit.wikimedia.org/r/mediawiki/extensions/VisualEditor \
-			$MEDIAWIKI_STORAGE_PATH/extensions/VisualEditor && \
-		cd $MEDIAWIKI_STORAGE_PATH/extensions/VisualEditor && \
-		git submodule update --init && \
-		rm -rf $MEDIAWIKI_STORAGE_PATH/extensions/VisualEditor/.git* && \
 	echo "**** download UserMerge extensions ****" && \
 		mkdir -p $MEDIAWIKI_STORAGE_PATH/extensions/UserMerge && \
 		git clone \
@@ -106,15 +104,6 @@ RUN \
 			https://gerrit.wikimedia.org/r/mediawiki/extensions/UserMerge \
 			$MEDIAWIKI_STORAGE_PATH/extensions/UserMerge && \
 		rm -rf $MEDIAWIKI_STORAGE_PATH/extensions/UserMerge/.git* && \
-	echo "**** download TemplateData extension ****" && \
-		mkdir -p $MEDIAWIKI_STORAGE_PATH/extensions/TemplateData && \
-		git clone \
-			--branch ${MEDIAWIKI_BRANCH} \
-			--single-branch \
-			--depth 1 \
-			https://gerrit.wikimedia.org/r/mediawiki/extensions/TemplateData \
-			$MEDIAWIKI_STORAGE_PATH/extensions/TemplateData && \
-		rm -rf $MEDIAWIKI_STORAGE_PATH/extensions/TemplateData/.git* && \
 	echo "**** download TemplateStyles extension ****" && \
 		mkdir -p $MEDIAWIKI_STORAGE_PATH/extensions/TemplateStyles && \
 			git clone \
@@ -133,37 +122,6 @@ RUN \
 			https://gerrit.wikimedia.org/r/mediawiki/extensions/TemplateWizard \
 			$MEDIAWIKI_STORAGE_PATH/extensions/TemplateWizard && \
 		rm -rf $MEDIAWIKI_STORAGE_PATH/extensions/TemplateWizard/.git* && \
-# remove block in future - start
-# remove these extensions after MEDIAWIKI_VERSION_MINOR changes to 34
-# these extentions will be included with mediawiki core
-	echo "**** download Scribunto extension ****" && \
-		mkdir -p $MEDIAWIKI_STORAGE_PATH/extensions/Scribunto && \
-		git clone \
-			--branch ${MEDIAWIKI_BRANCH} \
-			--single-branch \
-			--depth 1 \
-			https://gerrit.wikimedia.org/r/mediawiki/extensions/Scribunto \
-			$MEDIAWIKI_STORAGE_PATH/extensions/Scribunto && \
-		rm -rf $MEDIAWIKI_STORAGE_PATH/extensions/Scribunto/.git* && \		
-	echo "**** download PageImages extension ****" && \
-		mkdir -p $MEDIAWIKI_STORAGE_PATH/extensions/PageImages && \
-		git clone \
-			--branch ${MEDIAWIKI_BRANCH} \
-			--single-branch \
-			--depth 1 \
-			https://gerrit.wikimedia.org/r/mediawiki/extensions/PageImages \
-			$MEDIAWIKI_STORAGE_PATH/extensions/PageImages && \
-		rm -rf $MEDIAWIKI_STORAGE_PATH/extensions/PageImages/.git* && \		
-	echo "**** download TextExtracts extension ****" && \
-		mkdir -p $MEDIAWIKI_STORAGE_PATH/extensions/TextExtracts && \
-		git clone \
-			--branch ${MEDIAWIKI_BRANCH} \
-			--single-branch \
-			--depth 1 \
-			https://gerrit.wikimedia.org/r/mediawiki/extensions/TextExtracts \
-			$MEDIAWIKI_STORAGE_PATH/extensions/TextExtracts && \
-		rm -rf $MEDIAWIKI_STORAGE_PATH/extensions/TextExtracts/.git* && \
-# remove block in future - end		
 		chown -R abc:abc $MEDIAWIKI_STORAGE_PATH && \
 # cleanup
 	echo "**** cleanup ****" && \
