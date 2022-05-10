@@ -1,4 +1,4 @@
-FROM lsiobase/nginx:3.10
+FROM lsiobase/nginx:3.14
 # set version label
 ARG BUILD_DATE
 ARG VERSION
@@ -6,13 +6,9 @@ LABEL build_version="version:- ${VERSION} Build-date:- ${BUILD_DATE}"
 LABEL maintainer="d8sychain"
 # environment settings
 ENV APK_UPGRADE=false
-ENV PARSOID_VERSION=v0.10.0
-ENV PARSOID_HOME=/var/lib/parsoid
-ENV PARSOID_USER=parsoid
-ENV PARSOID_WORKERS=1
 ENV NODE_PATH=$PARSOID_HOME
 ENV MEDIAWIKI_VERSION_MAJOR=1
-ENV MEDIAWIKI_VERSION_MINOR=33
+ENV MEDIAWIKI_VERSION_MINOR=37
 ENV MEDIAWIKI_VERSION_BUGFIX=2
 ENV MEDIAWIKI_VERSION=v$MEDIAWIKI_VERSION_MAJOR\_$MEDIAWIKI_VERSION_MINOR\_$MEDIAWIKI_VERSION_BUGFIX
 ENV MEDIAWIKI_BRANCH=REL$MEDIAWIKI_VERSION_MAJOR\_$MEDIAWIKI_VERSION_MINOR
@@ -49,8 +45,6 @@ RUN \
 		ffmpeg \
 		imagemagick \
 		poppler-utils \
-		nodejs \
-		nodejs-npm \
 		python2 \
 		python3 \
 		lua \
@@ -58,19 +52,6 @@ RUN \
 	echo "**** make php7-fpm unix socket path ****" && \
 		mkdir -p /var/run/php7-fpm/ && \
 		chown abc:abc /var/run/php7-fpm/ && \
-# parsoid setup
-	echo "**** install parsoid ****" && \
-		set -x && \
-		adduser -D -u 1010 -s /bin/bash $PARSOID_USER && \
-		mkdir -p $PARSOID_HOME && \
-		git clone \
-			--branch ${PARSOID_VERSION} \
-			--single-branch \
-			--depth 1 \
-			https://gerrit.wikimedia.org/r/mediawiki/services/parsoid \
-			$PARSOID_HOME && \
-		cd $PARSOID_HOME && \
-		npm install && \   
 # mediawiki core, includes bundled extentions
 	echo "**** download mediawiki ****" && \
 		 mkdir -p $MEDIAWIKI_STORAGE_PATH && \
