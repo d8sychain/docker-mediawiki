@@ -3,8 +3,7 @@
 # make our folders
 mkdir -p \
 	$MEDIAWIKI_PATH \
-	/config/{log/mediawiki,log/parsoid,log/lua,nginx,php,parsoid} \
-	/run/s6/services/parsoid \
+	/config/{log/mediawiki,log/parsoid,log/lua,nginx,php} \
 	/assets/resources
 
 # copy mediawiki files
@@ -46,13 +45,6 @@ echo 'copying config files...'
 [[ ! -f /config/php/www2.conf ]] && \
 	cp /defaults/php/php-fpm.conf /config/php/www2.conf && \
 	echo 'default php-fpm.conf copied'
-# parsoid	
-[[ ! -f /config/parsoid/config.yaml ]] && \
-	cp /defaults/parsoid/config.yaml /config/parsoid/config.yaml && \
-	echo 'default parsoid config.yaml copied'
-[[ ! -f /run/s6/services/parsoid/config.yaml ]] && \
-	cp /config/parsoid/config.yaml 	$PARSOID_HOME/config.yaml && \
-	echo 'parsoid config.yaml copied'
 
 # set set execute permissions for mediawiki extentions
 chmod a+x $MEDIAWIKI_PATH/extensions/SyntaxHighlight_GeSHi/pygments/pygmentize
