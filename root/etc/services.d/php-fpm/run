@@ -1,0 +1,2 @@
+#!/usr/bin/with-contenv bash
+exec php-fpm${PHPV} --nodaemonize --fpm-config /config/php/www2.conf

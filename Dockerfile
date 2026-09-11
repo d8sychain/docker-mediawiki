@@ -1,19 +1,23 @@
-FROM lsiobase/nginx:3.10
+ARG BASEIMAGE_TAG
+FROM ghcr.io/linuxserver/baseimage-alpine:${BASEIMAGE_TAG}
 # set version label
 ARG BUILD_DATE
 ARG VERSION
 LABEL build_version="version:- ${VERSION} Build-date:- ${BUILD_DATE}"
 LABEL maintainer="d8sychain"
+# php package version prefix for this build (e.g. "7", "81", "83") - matches
+# the ${PHPV}-<extension> apk package naming Alpine uses for that PHP series.
+# Also kept as a runtime ENV since the php-fpm service script needs it to
+# invoke the correctly-versioned php-fpm binary (e.g. php-fpm7, php-fpm81).
+ARG PHPV
+ENV PHPV=${PHPV}
 # environment settings
 ENV APK_UPGRADE=false
-ENV PARSOID_VERSION=v0.10.0
-ENV PARSOID_HOME=/var/lib/parsoid
-ENV PARSOID_USER=parsoid
-ENV PARSOID_WORKERS=1
-ENV NODE_PATH=$PARSOID_HOME
 ENV MEDIAWIKI_VERSION_MAJOR=1
-ENV MEDIAWIKI_VERSION_MINOR=33
-ENV MEDIAWIKI_VERSION_BUGFIX=2
+ARG MEDIAWIKI_VERSION_MINOR
+ENV MEDIAWIKI_VERSION_MINOR=${MEDIAWIKI_VERSION_MINOR}
+ARG MEDIAWIKI_VERSION_BUGFIX
+ENV MEDIAWIKI_VERSION_BUGFIX=${MEDIAWIKI_VERSION_BUGFIX}
 ENV MEDIAWIKI_VERSION=v$MEDIAWIKI_VERSION_MAJOR\_$MEDIAWIKI_VERSION_MINOR\_$MEDIAWIKI_VERSION_BUGFIX
 ENV MEDIAWIKI_BRANCH=REL$MEDIAWIKI_VERSION_MAJOR\_$MEDIAWIKI_VERSION_MINOR
 ENV MEDIAWIKI_STORAGE_PATH=/defaults/www/mediawiki
@@ -29,49 +33,52 @@ RUN \
 		apk add --no-cache --upgrade --virtual=build-dependencies \
 		curl \
 		gnupg \
+		git \
 		tar && \
 	echo "**** install runtime packages ****" && \
 		apk add --no-cache --upgrade \
-		php7-xmlreader \
-		php7-dom \
-		php7-intl \
-		php7-ctype \
-		php7-iconv \
-		php7-mysqli \
-		php7-pgsql \
-		php7-pdo \
-		php7-pdo_sqlite \
-		php7-json \
-		php7-pecl-apcu \
-		php7-tokenizer \
+		nginx \
+		php${PHPV} \
+		php${PHPV}-fpm \
+		php${PHPV}-xmlreader \
+		php${PHPV}-dom \
+		php${PHPV}-intl \
+		php${PHPV}-ctype \
+		php${PHPV}-iconv \
+		php${PHPV}-mysqli \
+		php${PHPV}-pgsql \
+		php${PHPV}-pdo \
+		php${PHPV}-pdo_sqlite \
+		php${PHPV}-json \
+		php${PHPV}-pecl-apcu \
+		php${PHPV}-tokenizer \
+		php${PHPV}-mbstring \
+		php${PHPV}-xml \
+		php${PHPV}-fileinfo \
+		php${PHPV}-openssl \
+		php${PHPV}-sodium \
+		php${PHPV}-curl \
+		php${PHPV}-calendar \
+		php${PHPV}-session \
 		composer \
 		diffutils \
 		ffmpeg \
 		imagemagick \
 		poppler-utils \
-		nodejs \
-		nodejs-npm \
-		python2 \
 		python3 \
-		lua \
+		lua5.1 \
 		make && \
-	echo "**** make php7-fpm unix socket path ****" && \
-		mkdir -p /var/run/php7-fpm/ && \
-		chown abc:abc /var/run/php7-fpm/ && \
-# parsoid setup
-	echo "**** install parsoid ****" && \
-		set -x && \
-		adduser -D -u 1010 -s /bin/bash $PARSOID_USER && \
-		mkdir -p $PARSOID_HOME && \
-		git clone \
-			--branch ${PARSOID_VERSION} \
-			--single-branch \
-			--depth 1 \
-			https://gerrit.wikimedia.org/r/mediawiki/services/parsoid \
-			$PARSOID_HOME && \
-		cd $PARSOID_HOME && \
-		npm install && \   
-# mediawiki core, includes bundled extentions
+	echo "**** make php-fpm unix socket path ****" && \
+		mkdir -p /var/run/php-fpm/ && \
+		chown abc:abc /var/run/php-fpm/ && \
+# mediawiki core - git submodule init pulls in every extension/skin that
+# ships bundled with core (this is MediaWiki's own documented git install
+# method - see https://www.mediawiki.org/wiki/Download_from_Git). No need to
+# separately clone Parsoid (natively bundled in core since 1.35, no external
+# Node.js service needed), Scribunto/PageImages/TextExtracts/VisualEditor/
+# TemplateData/SyntaxHighlight_GeSHi, or any of the other extensions listed
+# as "bundled by default since 1.18" in the README - they're all core
+# submodules, this one step gets them all.
 	echo "**** download mediawiki ****" && \
 		 mkdir -p $MEDIAWIKI_STORAGE_PATH && \
 			git clone \
@@ -85,7 +92,10 @@ RUN \
 				https://gerrit.wikimedia.org/r/mediawiki/vendor.git && \
 			git submodule update --init && \
 			rm -rf .git* && \
-# mediawiki additional extensions
+# mediawiki additional extensions - not core submodules, fetched separately.
+# `--branch` resolves transparently to a tag when the live branch has been
+# pruned post-EOL (Wikimedia's practice for old releases) - verified for
+# each of these against REL1_35/REL1_39/REL1_43 before relying on it here.
 	echo "**** download mediawiki extensions ****" && \
 	echo "**** download Maintenance extension ****" && \
 		mkdir -p $MEDIAWIKI_STORAGE_PATH/extensions/Maintenance && \
@@ -105,18 +115,7 @@ RUN \
 			https://gerrit.wikimedia.org/r/mediawiki/extensions/UploadWizard \
 			$MEDIAWIKI_STORAGE_PATH/extensions/UploadWizard && \
 		rm -rf $MEDIAWIKI_STORAGE_PATH/extensions/UploadWizard/.git* && \
-	echo "**** download VisualEditor extension ****" && \
-		mkdir -p $MEDIAWIKI_STORAGE_PATH/extensions/VisualEditor && \
-		git clone \
-			--branch ${MEDIAWIKI_BRANCH} \
-			--single-branch \
-			--depth 1 \
-			https://gerrit.wikimedia.org/r/mediawiki/extensions/VisualEditor \
-			$MEDIAWIKI_STORAGE_PATH/extensions/VisualEditor && \
-		cd $MEDIAWIKI_STORAGE_PATH/extensions/VisualEditor && \
-		git submodule update --init && \
-		rm -rf $MEDIAWIKI_STORAGE_PATH/extensions/VisualEditor/.git* && \
-	echo "**** download UserMerge extensions ****" && \
+	echo "**** download UserMerge extension ****" && \
 		mkdir -p $MEDIAWIKI_STORAGE_PATH/extensions/UserMerge && \
 		git clone \
 			--branch ${MEDIAWIKI_BRANCH} \
@@ -125,15 +124,6 @@ RUN \
 			https://gerrit.wikimedia.org/r/mediawiki/extensions/UserMerge \
 			$MEDIAWIKI_STORAGE_PATH/extensions/UserMerge && \
 		rm -rf $MEDIAWIKI_STORAGE_PATH/extensions/UserMerge/.git* && \
-	echo "**** download TemplateData extension ****" && \
-		mkdir -p $MEDIAWIKI_STORAGE_PATH/extensions/TemplateData && \
-		git clone \
-			--branch ${MEDIAWIKI_BRANCH} \
-			--single-branch \
-			--depth 1 \
-			https://gerrit.wikimedia.org/r/mediawiki/extensions/TemplateData \
-			$MEDIAWIKI_STORAGE_PATH/extensions/TemplateData && \
-		rm -rf $MEDIAWIKI_STORAGE_PATH/extensions/TemplateData/.git* && \
 	echo "**** download TemplateStyles extension ****" && \
 		mkdir -p $MEDIAWIKI_STORAGE_PATH/extensions/TemplateStyles && \
 			git clone \
@@ -152,37 +142,6 @@ RUN \
 			https://gerrit.wikimedia.org/r/mediawiki/extensions/TemplateWizard \
 			$MEDIAWIKI_STORAGE_PATH/extensions/TemplateWizard && \
 		rm -rf $MEDIAWIKI_STORAGE_PATH/extensions/TemplateWizard/.git* && \
-# remove block in future - start
-# remove these extensions after MEDIAWIKI_VERSION_MINOR changes to 34
-# these extentions will be included with mediawiki core
-	echo "**** download Scribunto extension ****" && \
-		mkdir -p $MEDIAWIKI_STORAGE_PATH/extensions/Scribunto && \
-		git clone \
-			--branch ${MEDIAWIKI_BRANCH} \
-			--single-branch \
-			--depth 1 \
-			https://gerrit.wikimedia.org/r/mediawiki/extensions/Scribunto \
-			$MEDIAWIKI_STORAGE_PATH/extensions/Scribunto && \
-		rm -rf $MEDIAWIKI_STORAGE_PATH/extensions/Scribunto/.git* && \		
-	echo "**** download PageImages extension ****" && \
-		mkdir -p $MEDIAWIKI_STORAGE_PATH/extensions/PageImages && \
-		git clone \
-			--branch ${MEDIAWIKI_BRANCH} \
-			--single-branch \
-			--depth 1 \
-			https://gerrit.wikimedia.org/r/mediawiki/extensions/PageImages \
-			$MEDIAWIKI_STORAGE_PATH/extensions/PageImages && \
-		rm -rf $MEDIAWIKI_STORAGE_PATH/extensions/PageImages/.git* && \		
-	echo "**** download TextExtracts extension ****" && \
-		mkdir -p $MEDIAWIKI_STORAGE_PATH/extensions/TextExtracts && \
-		git clone \
-			--branch ${MEDIAWIKI_BRANCH} \
-			--single-branch \
-			--depth 1 \
-			https://gerrit.wikimedia.org/r/mediawiki/extensions/TextExtracts \
-			$MEDIAWIKI_STORAGE_PATH/extensions/TextExtracts && \
-		rm -rf $MEDIAWIKI_STORAGE_PATH/extensions/TextExtracts/.git* && \
-# remove block in future - end		
 		chown -R abc:abc $MEDIAWIKI_STORAGE_PATH && \
 # cleanup
 	echo "**** cleanup ****" && \

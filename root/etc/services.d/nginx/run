@@ -1,0 +1,2 @@
+#!/usr/bin/with-contenv bash
+exec nginx -c /config/nginx/nginx.conf

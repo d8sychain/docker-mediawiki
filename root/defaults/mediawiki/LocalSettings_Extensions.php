@@ -176,22 +176,22 @@ if ( !defined( 'MEDIAWIKI' ) ) {
 
 
 ## VisualEditor https://www.mediawiki.org/wiki/Extension:VisualEditor
+	// Since MW 1.35, Parsoid ships bundled inside MediaWiki core (no separate
+	// Node.js service). VisualEditor auto-configures itself to talk to the
+	// bundled Parsoid on the same host/port via $wgVisualEditorParsoidAutoConfig
+	// (defaults to true) - no $wgVirtualRestConfig needed for a standard setup.
 	#wfLoadExtension('VisualEditor');
 	$wgDefaultUserOptions['visualeditor-enable'] = 1;
-	$wgVirtualRestConfig['modules']['parsoid'] = array(
-		'url' => 'http://localhost:8142',
-		'domain' => 'localhost',
-		'prefix' => ''
-	);
-	$wgSessionsInObjectCache = true;
-	$wgVirtualRestConfig['modules']['parsoid']['forwardCookies'] = true;
 	// OPTIONAL: Enable VisualEditor's experimental code features
 	#$wgDefaultUserOptions['visualeditor-enable-experimental'] = 1;
-	// Parsoid athentication without forwarding cookies. Allows VisualEditor to work in private wikis.
-	if ( !isset( $_SERVER['REMOTE_ADDR'] ) OR $_SERVER['REMOTE_ADDR'] == '127.0.0.1' ) {
-		$wgGroupPermissions['*']['read'] = true;
-		$wgGroupPermissions['*']['edit'] = true;
-	};
+	// OPTIONAL: only needed if MediaWiki sits behind a proxy/port-mapping setup
+	// where the auto-config can't reach the bundled Parsoid on its own -
+	// see https://www.mediawiki.org/wiki/Extension:VisualEditor#Parsoid
+	#$wgVirtualRestConfig['modules']['parsoid'] = array(
+	#	'url' => $wgCanonicalServer . '/rest.php',
+	#	'domain' => 'localhost',
+	#	'prefix' => 'localhost'
+	#);
 
 
 ## WikiEditor https://www.mediawiki.org/wiki/Extension:WikiEditor
