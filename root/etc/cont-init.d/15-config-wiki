@@ -46,6 +46,17 @@ echo 'copying config files...'
 	cp /defaults/php/php-fpm.conf /config/php/www2.conf && \
 	echo 'default php-fpm.conf copied'
 
+# make sure the php-fpm socket directory exists and is writable, whatever
+# path the *active* www2.conf actually specifies - on an upgrade from an
+# older image, www2.conf is deliberately preserved as-is (see README) and
+# may still reference an older, version-specific socket path (e.g.
+# /var/run/php7-fpm/ from a pre-modernization image) rather than the
+# current default. Parsing the live file instead of assuming a fixed path
+# keeps upgrades from existing installs working without a manual conf edit.
+PHP_FPM_SOCKET_DIR=$(dirname "$(grep '^[[:space:]]*listen[[:space:]]*=' /config/php/www2.conf | sed 's/.*=[[:space:]]*//')")
+mkdir -p "$PHP_FPM_SOCKET_DIR"
+chown abc:abc "$PHP_FPM_SOCKET_DIR"
+
 # set set execute permissions for mediawiki extentions
 chmod a+x $MEDIAWIKI_PATH/extensions/SyntaxHighlight_GeSHi/pygments/pygmentize
 chmod a+x $MEDIAWIKI_PATH/extensions/Scribunto/includes/engines/LuaStandalone/binaries/lua5_1_5_linux_64_generic/lua
