@@ -9,6 +9,14 @@ KNOWNISSUES
 	* Remove line 163 **# Load extra settings** and line 164 **require ExtraLocalSettings.php';** from **LocalSettings.php**
 	* Restart the container.
 * I have noticed occasional that VisualEditor will not load and returns an error. This may be due to an issue with caching, https://www.mediawiki.org/wiki/Topic:Ueycowwi66jadub1  I have not tested this.
+* **Updating from a pre-1.35 image (1.33 and earlier) to 1.35+ requires regenerating two config files together**
+	* This image line was rebuilt starting at 1.35 on a different base (modern LinuxServer Alpine image instead of the old `lsiobase/nginx`), which changed the default PHP-FPM socket path and added a required `SCRIPT_FILENAME` directive to the nginx config
+	* Your existing **/config/nginx/nginx.conf** and **/config/php/www2.conf** are preserved as-is on upgrade (same policy as always - your customizations aren't silently overwritten), but that means they'll still reference the *old* socket path and be missing the new required directive
+	* **You must delete or rename BOTH files together** (not just one - they have to agree on the same socket path) before restarting, so the new defaults get copied in:
+		* `/config/nginx/nginx.conf`
+		* `/config/php/www2.conf`
+	* If you made customizations to either file, re-apply them to the new copies after restarting
+	* Restart the container. If you only delete one of the two files, expect a 502 (mismatched socket path between nginx and php-fpm) instead of a working upgrade.
 	
 ## MediaWiki using MySQL 8+ docker
 
