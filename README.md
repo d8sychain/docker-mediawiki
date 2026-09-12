@@ -61,17 +61,24 @@ The main focus of this docker was to build it in a way that makes it more conven
 
 ## Supported Tags
 
-- `latest` Latest push to [(Master Branch)](https://github.com/d8sychain/docker-mediawiki/tree/master)
-- `1.33` Latest push to [(1.33 Branch)](https://github.com/d8sychain/docker-mediawiki/tree/1.33)
-- `1.34` Latest push to [(1.34 Branch)](https://github.com/d8sychain/docker-mediawiki/tree/1.34) *Expected late Dec '19*
+- `latest` Latest push to [(Master Branch)](https://github.com/d8sychain/docker-mediawiki/tree/master) - currently 1.43 LTS
+- `1.43` MediaWiki 1.43 LTS - [(1.43 Branch)](https://github.com/d8sychain/docker-mediawiki/tree/1.43) - PHP 8.1-8.3
+- `1.39` MediaWiki 1.39 - [(1.39 Branch)](https://github.com/d8sychain/docker-mediawiki/tree/1.39) - PHP 8.1
+- `1.35` MediaWiki 1.35 - [(1.35 Branch)](https://github.com/d8sychain/docker-mediawiki/tree/1.35) - PHP 7.4
+- `1.33` Legacy - [(1.33 Branch)](https://github.com/d8sychain/docker-mediawiki/tree/1.33) - no longer maintained, upgrade via 1.35 first
 - `vX.Y.Z-dbN` [Build Releases](https://github.com/d8sychain/docker-mediawiki/releases)
+
+If you're on `1.33` or older, upgrade one tag at a time (1.35 -> 1.39 -> 1.43)
+with `UPGRADE_MEDIAWIKI=enable` rather than jumping straight to `latest` -
+see [Upgrading](#upgrading) and check [KNOWNISSUES.md](docs/KNOWNISSUES.md)
+for a required manual step on the first hop off a pre-1.35 image.
 
 ## Features
 
-- [MediaWiki](https://www.mediawiki.org) v1.33.2  *(v1.34.0 expected Late Dec '19)*
-- [Nginx](https://www.nginx.com) 1.16.1
-- [PHP-FPM](https://www.php.net/manual/en/book.fpm.php) with [PHP](https://www.mediawiki.org/wiki/Compatibility#PHP) 7.3.11
-- [Parsoid](https://www.mediawiki.org/wiki/Parsoid) running on [NodeJS](https://nodejs.org) 10.16.3
+- [MediaWiki](https://www.mediawiki.org) 1.43 LTS
+- Built on the current [LinuxServer.io Alpine baseimage](https://github.com/linuxserver/docker-baseimage-alpine) (s6-overlay v3) instead of the old, EOL `lsiobase/nginx`
+- [Nginx](https://www.nginx.com) and [PHP-FPM](https://www.php.net/manual/en/book.fpm.php) with [PHP](https://www.mediawiki.org/wiki/Compatibility#PHP) 8.3 (see the per-tag PHP version above for 1.35/1.39)
+- [Parsoid](https://www.mediawiki.org/wiki/Parsoid) is natively bundled in MediaWiki core since 1.35 - VisualEditor no longer needs a separate Node.js service
 - [APCu](https://www.php.net/manual/en/book.apcu.php) PHP caching [*see MediaWiki Perfomance Tuning*](https://www.mediawiki.org/wiki/Manual:Performance_tuning#Object_caching)
 - [International Components for Unicode](http://site.icu-project.org/) 64.2 for Unicode normalization
 - [Lua](http://www.lua.org) 5.1.x
@@ -84,8 +91,11 @@ The main focus of this docker was to build it in a way that makes it more conven
 
 ### Extensions
 MediaWiki comes with a number of extensions bundled in by default since version 1.18.
-Some extentions are additional extensions that were added to this docker.
-Three additional extensions that were added will be bundled in by default in MediaWiki 1.34+
+Some extensions are additional extensions that were added to this docker on
+top of what core bundles - these are fetched via a plain git clone rather
+than core's submodule mechanism, and are the only ones ExtensionManager's
+upgrade logic re-fetches on a version bump: Maintenance, UploadWizard,
+UserMerge, TemplateStyles, TemplateWizard.
 
 #### Special Pages
 - [CiteThisPage](https://www.mediawiki.org/wiki/Extension:CiteThisPage)  (1.21+)
@@ -108,7 +118,7 @@ Three additional extensions that were added will be bundled in by default in Med
 - [InputBox](https://www.mediawiki.org/wiki/Extension:InputBox)  (1.21+)
 - [ParserFunctions](https://www.mediawiki.org/wiki/Extension:ParserFunctions)  (1.18+)
 - [Poem](https://www.mediawiki.org/wiki/Extension:Poem)  (1.21+)
-- [Scribunto](https://www.mediawiki.org/wiki/Extension:Scribunto)  (additional extension will be bundled in future release MW 1.34+)
+- [Scribunto](https://www.mediawiki.org/wiki/Extension:Scribunto)  (core-bundled since 1.34+)
 - [SyntaxHighlight](https://www.mediawiki.org/wiki/Extension:SyntaxHighlight)  (1.21+)
 - [TemplateData](https://www.mediawiki.org/wiki/Extension:TemplateData)  (Additional Extension)
 - [TemplateStyles](https://www.mediawiki.org/wiki/Extension:TemplateStyles)  (Additional Extension)
@@ -123,7 +133,7 @@ Three additional extensions that were added will be bundled in by default in Med
 - [TitleBlacklist](https://www.mediawiki.org/wiki/Extension:TitleBlacklist)  (1.21+)
 
 #### API
-- [PageImages](https://www.mediawiki.org/wiki/Extension:PageImages)  (additional extension will be bundled in future release MW 1.34+)
+- [PageImages](https://www.mediawiki.org/wiki/Extension:PageImages)  (core-bundled since 1.34+)
 
 #### Other
 - [Gadgets](https://www.mediawiki.org/wiki/Extension:Gadgets)  (1.18+)
@@ -131,7 +141,7 @@ Three additional extensions that were added will be bundled in by default in Med
 - [MultimediaViewer](https://www.mediawiki.org/wiki/Extension:MultimediaViewer)  (1.31+)
 - [OATHAuth](https://www.mediawiki.org/wiki/Extension:OATHAuth)  (1.31+)
 - [TemplateWizard](https://www.mediawiki.org/wiki/Extension:TemplateWizard)  (Additional Extension)
-- [TextExtracts](https://www.mediawiki.org/wiki/Extension:TextExtracts)  (additional extension will be bundled in future release MW 1.34+)
+- [TextExtracts](https://www.mediawiki.org/wiki/Extension:TextExtracts)  (core-bundled since 1.34+)
 - [UploadWizard](https://www.mediawiki.org/wiki/Extension:UploadWizard)  (Additional Extension)
 
 
