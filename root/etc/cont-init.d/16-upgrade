@@ -26,8 +26,15 @@ if [ -e $MEDIAWIKI_PATH/VERSION ]
 				# upgrade mediawiki database
 				echo 'upgrading mediawiki database'
 				cd $MEDIAWIKI_PATH/maintenance
-				php update.php
-				sed -i "s/.*/$MEDIAWIKI_VERSION/" $MEDIAWIKI_PATH/VERSION
+				if php update.php --quick
+					then
+						sed -i "s/.*/$MEDIAWIKI_VERSION/" $MEDIAWIKI_PATH/VERSION
+					else
+						echo "ERROR: update.php failed - database was NOT fully migrated to $MEDIAWIKI_VERSION"
+						echo "VERSION file left as 'upgrading to $MEDIAWIKI_VERSION' so this is retried on next restart"
+						echo "instead of silently marking the upgrade complete against a half-migrated database"
+						exit 1
+				fi
 		fi
 	else
 		# version control file does not exist, create it and set version if mediawiki has been installed (incase 15-config fails) 

@@ -71,6 +71,14 @@ RUN \
 	echo "**** make php-fpm unix socket path ****" && \
 		mkdir -p /var/run/php-fpm/ && \
 		chown abc:abc /var/run/php-fpm/ && \
+	echo "**** point bare 'php' at the version this image actually configured ****" && \
+	# the baseimage itself ships its own bare /usr/bin/php (a different,
+	# newer PHP release than the version explicitly installed above, with
+	# none of the extensions we just added) - several cont-init.d scripts
+	# and composer invoke bare `php`/`php update.php` rather than the
+	# versioned binary, so without this they silently run against the
+	# wrong interpreter and fail with missing-extension errors
+		ln -sf /usr/bin/php${PHPV} /usr/bin/php && \
 # mediawiki core - git submodule init pulls in every extension/skin that
 # ships bundled with core (this is MediaWiki's own documented git install
 # method - see https://www.mediawiki.org/wiki/Download_from_Git). No need to
