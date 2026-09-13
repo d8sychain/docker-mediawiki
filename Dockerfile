@@ -25,6 +25,17 @@ ENV MEDIAWIKI_PATH=/config/www/mediawiki
 ENV MEDIAWIKI_EXTENSION_PATH=$MEDIAWIKI_PATH/extensions
 ENV EXTENSION_MANAGER_PATH=/config/ExtensionManager
 ENV UPGRADE_MEDIAWIKI=disable
+# integrated MariaDB option - opt-in, off by default. Split-container (an
+# external DB, matching jsrwiki's real deployment) is the default and
+# everything already validated by this project - this toggle exists only
+# for other users of the public image who relied on it from the edge
+# branch. When false, none of the mariadb apk packages are ever installed
+# (they're pulled at container start, not baked into the image, so leaving
+# this off costs nothing - no image bloat, no extra startup work).
+ENV MYSQL_INSTALL_OPTION=false
+ENV MYSQL_PATH=/config/mysql
+ENV MYSQL_DBDATA_PATH=$MYSQL_PATH/databases
+ENV MYSQL_ROOT_PASSWORD=ROOT_ACCESS_PASSWORD
 # copy local files
 COPY root/ /
 # build image - start

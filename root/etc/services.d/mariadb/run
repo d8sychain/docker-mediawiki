@@ -1,0 +1,20 @@
+#!/usr/bin/with-contenv bash
+
+#########################################
+##   based on code by linuxserver.io   ##
+##  giving credit where credit is due  ##
+#########################################
+
+if [ $MYSQL_INSTALL_OPTION == true ]
+	then
+		_term() {
+		  echo "Caught SIGTERM signal!"
+		  kill -TERM "$(cat /var/run/mysqld/mysqld.pid)" 2>/dev/null
+		}
+
+		trap _term SIGTERM
+
+		s6-setuidgid abc /usr/bin/mysqld_safe &
+
+		wait
+fi

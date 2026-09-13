@@ -1,0 +1,58 @@
+#!/usr/bin/with-contenv bash
+
+#########################################
+##   based on code by linuxserver.io   ##
+##  giving credit where credit is due  ##
+#########################################
+
+# mysql install option - opt-in, off by default (split-container is the
+# default for this project). When enabled, the mariadb packages are
+# installed at container start (not baked into the image), so leaving this
+# off costs nothing for anyone not opting in.
+if [ $MYSQL_INSTALL_OPTION == true ]
+	then
+	# install mariadb packages
+		if ! grep -q mariadb /config/log/packages.list 2>/dev/null
+			then
+				apk add --no-cache --upgrade \
+				mariadb \
+				mariadb-client
+		fi
+
+		# make folders if required
+		mkdir -p \
+			"$MYSQL_DBDATA_PATH" \
+			/config/log/mysql \
+			/var/run/mysqld
+
+		if [ -e /etc/my.cnf.d/mariadb-server.cnf ]
+			then
+				CONF_FILE="/etc/my.cnf.d/mariadb-server.cnf";
+			else
+				CONF_FILE="/etc/my.cnf";
+		fi
+
+		# configure my.cnf and mysqld_safe
+		echo "### configure mysql ###"
+		sed -i 's/key_buffer\b/key_buffer_size/g' "$CONF_FILE"
+		sed -ri 's/^(bind-address|skip-networking)/;\1/' "$CONF_FILE"
+		sed -i s#/var/log/mysql#/config/log/mysql#g "$CONF_FILE"
+		sed -i -e 's/\(user.*=\).*/\1 abc/g' "$CONF_FILE"
+		sed -i -e "s#\\(datadir.*=\\).*#\\1 $MYSQL_DBDATA_PATH#g" "$CONF_FILE"
+		sed -i "s/user='mysql'/user='abc'/g" /usr/bin/mysqld_safe
+
+		# setup default cnf file
+		[[ ! -f $MYSQL_PATH/default.cnf ]] && \
+			cp /defaults/mysql/default.cnf $MYSQL_PATH/default.cnf
+		[[ ! -L /etc/my.cnf.d/default.cnf && -f /etc/my.cnf.d/default.cnf ]] && \
+			rm /etc/my.cnf.d/default.cnf
+		[[ ! -L /etc/my.cnf.d/default.cnf ]] && \
+			ln -s $MYSQL_PATH/default.cnf /etc/my.cnf.d/default.cnf
+
+		# set permissions
+		[[ -e /etc/my.cnf.d/mariadb-server.cnf ]] && \
+			(chown abc:abc /etc/my.cnf.d/mariadb-server.cnf && chmod 644 /etc/my.cnf.d/mariadb-server.cnf)
+		chmod -R 777 \
+			/var/run/mysqld
+		chmod 664 $MYSQL_PATH/default.cnf
+fi
