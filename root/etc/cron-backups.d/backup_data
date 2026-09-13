@@ -1,0 +1,5 @@
+#!/usr/bin/with-contenv bash
+
+# run backup_data
+. /etc/mw-maintenance.d/backup.func
+backup_data

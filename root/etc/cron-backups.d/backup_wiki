@@ -1,0 +1,5 @@
+!/usr/bin/with-contenv bash
+
+# run backup_wiki
+. /etc/mw-maintenance.d/backup.func
+backup_wiki

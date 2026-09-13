@@ -36,6 +36,12 @@ ENV MYSQL_INSTALL_OPTION=false
 ENV MYSQL_PATH=/config/mysql
 ENV MYSQL_DBDATA_PATH=$MYSQL_PATH/databases
 ENV MYSQL_ROOT_PASSWORD=ROOT_ACCESS_PASSWORD
+# backups - off on container start by default; the cron-based schedule
+# (edited via the maintenance menu's Backup Scheduling submenu) is
+# separate and ships with every backup type commented out until a user
+# opts in
+ENV BACKUP_MEDIAWIKI=false
+ENV BACKUP_PATH=/config/backup
 # copy local files
 COPY root/ /
 # build image - start
@@ -48,6 +54,7 @@ RUN \
 	echo "**** install runtime packages ****" && \
 		apk add --no-cache --upgrade \
 		git \
+		mariadb-client \
 		nginx \
 		php${PHPV} \
 		php${PHPV}-fpm \
@@ -77,6 +84,7 @@ RUN \
 		php${PHPV}-xmlwriter \
 		composer \
 		diffutils \
+		htop \
 		ffmpeg \
 		imagemagick \
 		nano \

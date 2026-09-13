@@ -6,6 +6,8 @@ extention_name=null
 # source functions
 . /etc/mw-maintenance.d/extension-manager.func
 . /etc/mw-maintenance.d/database.func
+. /etc/mw-maintenance.d/backup.func
+. /etc/mw-maintenance.d/services.func
 
 # functions
 load_header(){
@@ -254,24 +256,441 @@ database_submenu(){
 	return
 }
 
+backup_submenu(){
+	submenuL1_option=0
+	until [ $submenuL1_option = 12 ]
+		do
+					  ##6     MediaWiki Maintenance     6##
+					  ##10        Backup Manager        9##
+			menu_title="          Backup Manager         "
+			load_header
+			echo " 1) Backup MediaWiki Files"
+			echo " 2) Backup Database"
+			echo " 3) Backup Assets and Uploads"
+			echo " 4) Backup All Configuration Files"
+			echo " 5) Backup MediaWiki Files, Database, Assets, Uploads, and Configuration Files"
+			echo " 6) Remove A Backup"
+			echo " 7) Remove Backups By Age"
+			echo " 8) Restore A Backup"
+			echo " 9) Rename A Backup"
+			echo "10) Edit Backup Schedule"
+			echo "11) List Backups"
+			echo "12) Back"
+			echo
+			read -p 'Option: ' submenuL1_option
+			echo
+			case $submenuL1_option in
+						1)
+						echo "Backup MediaWiki Files"
+						read -p 'Verbose: Y/n? ' sub_option
+						if [ "$sub_option" == "Y" ]
+							then
+								backup_wiki -v
+							else
+								backup_wiki
+						fi
+						press_to_continue
+						;;
+
+						2)
+						echo "Backup Database"
+						read -p 'Verbose: Y/n? ' sub_option
+						if [ "$sub_option" == "Y" ]
+							then
+								backup_data -v
+							else
+								backup_data
+						fi
+						press_to_continue
+						;;
+
+						3)
+						echo "Backup Assets and Uploads"
+						read -p 'Verbose: Y/n? ' sub_option
+						if [ "$sub_option" == "Y" ]
+							then
+								backup_assets -v
+							else
+								backup_assets
+						fi
+						press_to_continue
+						;;
+
+						4)
+						echo "Backup All Configuration Files"
+						read -p 'Verbose: Y/n? ' sub_option
+						if [ "$sub_option" == "Y" ]
+							then
+								backup_configs -v
+							else
+								backup_configs
+						fi
+						press_to_continue
+						;;
+
+						5)
+						echo "Backup MediaWiki Files, Database, Assets, and Uploads"
+						read -p 'Verbose: Y/n? ' sub_option
+						if [ "$sub_option" == "Y" ]
+							then
+								backup_all -v
+							else
+								backup_all
+						fi
+						press_to_continue
+						;;
+
+						6)
+						echo "Remove A Backup"
+						echo
+						backup_list
+						if [ $? = 0 ]
+							then
+								echo
+								echo "ALL) Remove all backups starting with 'mediawiki' (default name)"
+								echo
+								read -p 'Enter a number or ALL: ' backup_number
+								if [ "$backup_number" == "ALL" ]
+									then
+										read -p 'Are you sure Y/n? ' certainty
+										if [ "$certainty" == "Y" ]
+											then
+												read -p 'Verbose: Y/n? ' sub_option
+												if [ "$sub_option" == "Y" ]
+													then
+														backup_remove_all -v
+													else
+														backup_remove_all
+												fi
+											else
+												echo "Cancelled"
+										fi
+									else
+										select_option $backup_number
+										if [ $? = 0 ]
+											then
+												read -p 'Verbose: Y/n? ' sub_option
+												if [ "$sub_option" == "Y" ]
+													then
+														backup_remove $selected_name -v
+													else
+														backup_remove $selected_name
+												fi
+										fi
+								fi
+						fi
+						press_to_continue
+						;;
+
+						7)
+						echo "Remove Backups By Age"
+						echo
+						backup_list
+						if [ $? = 0 ]
+							then
+								echo
+								echo "Warning: entering 0 will remove all"
+								read -p 'Enter number of days to retain: ' backup_age
+								backup_remove_old $backup_age
+								if [ $? = 1 ]
+									then
+										echo "Not valid"
+								fi
+						fi
+						press_to_continue
+						;;
+
+						8)
+						echo "Restore A Backup"
+						echo
+						backup_list
+						if [ $? = 0 ]
+							then
+								echo
+								read -p 'Enter a number: ' backup_number
+								select_option $backup_number
+								if [ $? = 0 ]
+									then
+										echo
+										echo "The following will be restored:"
+										echo
+										backup_list_content $selected_name
+										if [ $? = 0 ]
+											then
+												echo
+												read -p 'Are you sure Y/n? ' certainty
+												if [ "$certainty" == "Y" ]
+													then
+														read -p 'Verbose: Y/n? ' sub_option
+														lock_db
+														service_mysql_stop
+														if [ "$sub_option" == "Y" ]
+															then
+																backup_restore $selected_name -v
+															else
+																backup_restore $selected_name
+														fi
+														service_mysql_start
+														service_nginx_restart
+														service_phpfpm_restart
+														unlock_db
+													else
+														echo "Cancelled"
+												fi
+										fi
+								fi
+						fi
+						press_to_continue
+						;;
+
+						9)
+						echo "Rename A Backup"
+						echo
+						backup_list
+						if [ $? = 0 ]
+							then
+								echo
+								read -p 'Enter a number: ' backup_number
+								select_option $backup_number
+								if [ $? = 0 ]
+									then
+										echo
+										echo "Use an existing name to merge backups (will overwrite data)"
+										echo "Valid characters A-Z a-z 0-9 _ . -"
+										read -p 'Enter new name: ' new_name
+										backup_rename "$selected_name" "$new_name" "$option_array"
+								fi
+						fi
+						press_to_continue
+						;;
+
+						10)
+						backup_schedule_submenu
+						;;
+
+						11)
+						echo "List Backups"
+						echo
+						backup_list
+						press_to_continue
+						;;
+
+						12)
+						;;
+
+						*)
+						not_valid_option
+						;;
+					esac
+		done
+	return
+}
+
+backup_schedule_submenu(){
+	submenuL2_option=0
+	until [ $submenuL2_option = 3 ]
+		do
+					  ##6     MediaWiki Maintenance     6##
+					  ##8       Backup Scheduling       8##
+			menu_title="        Backup Scheduling        "
+			load_header
+			echo "1) Edit Backup Schedule"
+			echo "2) Edit Retention Days"
+			echo "3) Back"
+			echo
+			read -p 'Option: ' submenuL2_option
+			echo
+			case $submenuL2_option in
+						1)
+						crontab -e
+						;;
+
+						2)
+						nano /etc/cron-backups.d/backup_remove_old
+						;;
+
+						3)
+						;;
+
+						*)
+						not_valid_option
+						;;
+					esac
+		done
+	return
+}
+
+# NOTE: this departs from edge's Services submenu in two ways, both real
+# compatibility fixes rather than a blind copy - edge's "Restart MW
+# Parsiod"/"Edit Parsiod Configuration" items are dropped entirely (no
+# standalone Parsoid service exists on the modernized codebase - bundled
+# into MediaWiki core since 1.35), and the MariaDB/MySQL log/config paths
+# now only apply when MYSQL_INSTALL_OPTION is enabled (they point at
+# nothing real otherwise, since split-container is the default and the
+# database isn't in this container at all).
+services_submenu(){
+	submenuL1_option=0
+	until [ $submenuL1_option = 12 ]
+		do
+					  ##6     MediaWiki Maintenance     6##
+					  ##9        Services Manager       8##
+			menu_title="         Services Manager        "
+			load_header
+			echo "              NGINX              "
+			echo " 1) Edit NGINX Configuration"
+			echo " 2) View NGINX Access Log"
+			echo " 3) View NGINX Error Log"
+			echo " 4) Restart NGINX"
+			echo
+			echo "               PHP               "
+			echo " 5) Edit PHP Configuration"
+			echo " 6) Edit PHP-FPM Configuration"
+			echo " 7) Restart PHP-FPM"
+			echo
+			echo "     MariaDB/MySQL (integrated only, MYSQL_INSTALL_OPTION=true)     "
+			echo " 8) Edit MariaDB/MySQL Configuration"
+			echo " 9) View MariaDB/MySQL Error Log"
+			echo "10) Restart MariaDB/MySQL"
+			echo
+			echo "            Processes            "
+			echo "11) See Running Processes (htop)"
+			echo "12) Back"
+			echo
+			read -p 'Option: ' submenuL1_option
+			echo
+			case $submenuL1_option in
+						1)
+						nano /config/nginx/nginx.conf
+						;;
+
+						2)
+						echo "View NGINX Access Log"
+						read -p 'Live view: Y/n?' sub_option
+						if [ "$sub_option" == "Y" ]
+							then
+								echo
+								echo "press Ctrl+C to exit live view"
+								press_to_continue
+								clear
+								trap ' ' SIGINT
+								tail -f /config/log/nginx/access.log
+								trap - SIGINT
+								press_to_continue
+							else
+								clear
+								cat /config/log/nginx/access.log
+								press_to_continue
+						fi
+						;;
+
+						3)
+						echo "View NGINX Error Log"
+						read -p 'Live view: Y/n?' sub_option
+						if [ "$sub_option" == "Y" ]
+							then
+								echo
+								echo "press Ctrl+C to exit live view"
+								press_to_continue
+								clear
+								trap ' ' SIGINT
+								tail -f /config/log/nginx/error.log
+								trap - SIGINT
+								press_to_continue
+							else
+								clear
+								cat /config/log/nginx/error.log
+								press_to_continue
+						fi
+						;;
+
+						4)
+						service_nginx_restart
+						press_to_continue
+						;;
+
+						5)
+						nano /config/php/php-local.ini
+						;;
+
+						6)
+						nano /config/php/www2.conf
+						;;
+
+						7)
+						service_phpfpm_restart
+						press_to_continue
+						;;
+
+						8)
+						if [ "$MYSQL_INSTALL_OPTION" == "true" ]
+							then
+								nano $MYSQL_PATH/default.cnf
+							else
+								echo "MYSQL_INSTALL_OPTION is not enabled - nothing to edit here"
+								press_to_continue
+						fi
+						;;
+
+						9)
+						if [ "$MYSQL_INSTALL_OPTION" == "true" ]
+							then
+								echo "View MariaDB/MySQL Error Log"
+								read -p 'Live view: Y/n?' sub_option
+								if [ "$sub_option" == "Y" ]
+									then
+										echo
+										echo "press Ctrl+C to exit live view"
+										press_to_continue
+										clear
+										trap ' ' SIGINT
+										tail -f /config/log/mysql/error.log
+										trap - SIGINT
+										press_to_continue
+									else
+										clear
+										cat /config/log/mysql/error.log
+										press_to_continue
+								fi
+							else
+								echo "MYSQL_INSTALL_OPTION is not enabled - no local database log to view"
+								press_to_continue
+						fi
+						;;
+
+						10)
+						service_mysql_restart
+						press_to_continue
+						;;
+
+						11)
+						htop -t
+						;;
+
+						12)
+						;;
+
+						*)
+						not_valid_option
+						;;
+					esac
+		done
+	return
+}
+
 # main menu
-# NOTE: Backups and Services submenus are ported in a later phase of the
-# edge-port effort (they need real adaptation for the modernized
-# architecture - e.g. dropping the standalone-Parsoid service item and
-# adding split-container DB backup support - rather than a blind copy from
-# edge). This menu will grow back to edge's full 4-option parity once those
-# pieces land.
 main_menu(){
 	menu_option=0
-	until [ $menu_option = 3 ]
+	until [ $menu_option = 5 ]
 		do
 					  ##6     MediaWiki Maintenance     6##
 					  ##12          Main Menu          12##
 			menu_title="            Main Menu            "
 			load_header
 			echo "1) Extension Manager"
-			echo "2) Database"
-			echo "3) Quit"
+			echo "2) Backups"
+			echo "3) Database"
+			echo "4) Services"
+			echo "5) Quit"
 			echo
 			read -p 'Option: ' menu_option
 			echo
@@ -281,10 +700,18 @@ main_menu(){
 						;;
 
 						2)
-						database_submenu
+						backup_submenu
 						;;
 
 						3)
+						database_submenu
+						;;
+
+						4)
+						services_submenu
+						;;
+
+						5)
 						;;
 
 						*)

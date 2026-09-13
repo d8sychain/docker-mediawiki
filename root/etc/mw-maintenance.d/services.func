@@ -1,0 +1,52 @@
+
+# This file departs from a straight port of edge's services.func - edge's
+# version assumed nginx/php-fpm run as background daemons with pidfiles
+# (restart = kill the pid, wait for a new pidfile to appear). On the
+# modernized codebase, nginx and php-fpm run in the foreground under direct
+# s6 supervision instead (php-fpm doesn't even write a pidfile at all -
+# confirmed empirically, not assumed). s6-svc is the correct, idiomatic
+# restart mechanism for a supervised service in this architecture, so
+# that's used here instead. The standalone Parsoid service from edge
+# (service_parsoid_restart) is dropped entirely - Parsoid has been bundled
+# into MediaWiki core since 1.35, no separate service exists to restart.
+
+service_nginx_restart(){
+	echo "### restarting nginx ###"
+	s6-svc -r /run/service/nginx
+}
+
+service_phpfpm_restart(){
+	echo "### restarting php-fpm ###"
+	s6-svc -r /run/service/php-fpm
+}
+
+service_mysql_restart(){
+	if [ "$MYSQL_INSTALL_OPTION" == "true" ]
+		then
+			echo "### restarting mariadb ###"
+			s6-svc -r /run/service/mariadb
+		else
+			echo "### MYSQL_INSTALL_OPTION is not enabled - no local database service to restart ###"
+			echo "### this wiki uses an external database - restart it from its own container/host ###"
+	fi
+}
+
+# used by the backup restore flow: stop the integrated MariaDB service
+# cleanly before overwriting its data files, then bring it back up after -
+# s6's down/up primitives, not a SIGSTOP/SIGCONT pause of a still-resident
+# process holding open handles to files that are about to be replaced
+service_mysql_stop(){
+	if [ "$MYSQL_INSTALL_OPTION" == "true" ]
+		then
+			echo "### stopping mariadb ###"
+			s6-svc -d /run/service/mariadb
+	fi
+}
+
+service_mysql_start(){
+	if [ "$MYSQL_INSTALL_OPTION" == "true" ]
+		then
+			echo "### starting mariadb ###"
+			s6-svc -u /run/service/mariadb
+	fi
+}
