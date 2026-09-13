@@ -2,10 +2,15 @@ Bulk Edit Help
 
 Use option 1 to edit the list of extension changes to be made using nano.
 
-Add a command ( + , * , - ) and the extension name
-Use + for adding an extension that uses `wfLoadExtension( 'ExtensionName' );` in LocalSetting.php
-Use * for adding an extension that uses `require_once "$IP/extensions/ExtensionName/ExtensionName.php";` in LocalSetting.php
-Use - to remove an extension
+Add a command ( + , * , - , ~ ) and the extension name
+Use + for adding a git-sourced extension that uses `wfLoadExtension( 'ExtensionName' );` in LocalSetting.php
+Use * for adding a git-sourced extension that uses `require_once "$IP/extensions/ExtensionName/ExtensionName.php";` in LocalSetting.php
+Use - to remove an extension (works for both git-sourced and Composer-sourced extensions)
+Use ~package:version:ExtensionName to add a Composer-sourced extension, e.g. ~mediawiki/maps:~14.0:Maps
+	- package is the Packagist package name (e.g. mediawiki/maps)
+	- version is the Composer version constraint (e.g. ~14.0)
+	- ExtensionName must exactly match the directory the package installs
+	  itself as under extensions/ (check the extension's own documentation)
 
 See the extension documentation at https://www.mediawiki.org/wiki/Extension:ExtensionName
 to know which command to use when adding an extension.
@@ -20,6 +25,7 @@ For example:
  -Poem
  *ConfirmAccount
  +Echo
+ ~mediawiki/maps:~14.0:Maps
  updatedb
 
 To exit Ctrl+X then Y and Enter to save.

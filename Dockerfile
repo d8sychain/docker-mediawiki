@@ -60,6 +60,10 @@ RUN \
 		php${PHPV}-curl \
 		php${PHPV}-calendar \
 		php${PHPV}-session \
+		php${PHPV}-phar \
+		php${PHPV}-simplexml \
+		php${PHPV}-zip \
+		php${PHPV}-xmlwriter \
 		composer \
 		diffutils \
 		ffmpeg \
@@ -80,6 +84,17 @@ RUN \
 	# versioned binary, so without this they silently run against the
 	# wrong interpreter and fail with missing-extension errors
 		ln -sf /usr/bin/php${PHPV} /usr/bin/php && \
+	echo "**** point composer's own wrapper at the same correct interpreter ****" && \
+	# Alpine's `composer` apk package ships a wrapper script that hardcodes
+	# whichever bare PHP was present on the system when the package was
+	# built (e.g. /usr/bin/php85 or /usr/bin/php84) - it does NOT go through
+	# the bare `php` symlink fixed above, so without this composer silently
+	# runs against a PHP release with none of this image's configured
+	# extensions and fails to resolve any real dependency graph. Rewriting
+	# it to call the symlink above (rather than hardcoding php${PHPV}) keeps
+	# this working even if a future baseimage bump changes what PHP ships
+	# by default.
+		sed -i "s#$(grep -oE '/usr/bin/php[0-9]*' /usr/bin/composer | head -1)#/usr/bin/php#" /usr/bin/composer && \
 # mediawiki core - git submodule init pulls in every extension/skin that
 # ships bundled with core (this is MediaWiki's own documented git install
 # method - see https://www.mediawiki.org/wiki/Download_from_Git). No need to

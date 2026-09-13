@@ -97,11 +97,27 @@ extension_remove(){
 		then
 			if [ ! "$extension_name" == "" ]
 				then
-					echo "### removing $extension_name extension ###"
-					rm -rf $2 $MEDIAWIKI_EXTENSION_PATH/$extension_name
-					sed -i "/$extension_name/d" $MEDIAWIKI_PATH/LocalSettings.php
-					extension_update_install_list
-					echo "### extension $extension_name removed ###"
+					composer_entry=""
+					[ -f $EXTENSION_MANAGER_PATH/INSTALLED_COMPOSER ] && \
+						composer_entry=$(grep "|${extension_name}\$" $EXTENSION_MANAGER_PATH/INSTALLED_COMPOSER)
+					if [ ! -z "$composer_entry" ]
+						then
+							package="${composer_entry%%|*}"
+							echo "### removing $extension_name extension (composer package $package) ###"
+							cd $MEDIAWIKI_PATH
+							COMPOSER=composer.local.json composer remove --no-update --no-plugins "$package"
+							composer update --no-dev -o
+							sed -i "/$extension_name/d" $MEDIAWIKI_PATH/LocalSettings.php
+							sed -i "\#|${extension_name}\$#d" $EXTENSION_MANAGER_PATH/INSTALLED_COMPOSER
+							extension_composer_finalize
+							echo "### extension $extension_name removed ###"
+						else
+							echo "### removing $extension_name extension ###"
+							rm -rf $2 $MEDIAWIKI_EXTENSION_PATH/$extension_name
+							sed -i "/$extension_name/d" $MEDIAWIKI_PATH/LocalSettings.php
+							extension_update_install_list
+							echo "### extension $extension_name removed ###"
+					fi
 				else
 					echo "No extension name provided"
 			fi
@@ -124,6 +140,23 @@ extension_upgrade(){
 			extension_fetch $extension_name
 			extension_finalize $extension_name
 		done
+	# composer-sourced extensions: re-run the full composer workflow against
+	# the freshly-copied vendor/composer.lock for the new MediaWiki version
+	# rather than assuming the previous lock state carries over correctly -
+	# the old composer.local.json survives the upgrade wipe (it's under
+	# /config), but the vendor snapshot it needs to resolve against is brand
+	# new for this version
+	if [ -s $EXTENSION_MANAGER_PATH/INSTALLED_COMPOSER ]
+		then
+			echo "### upgrading composer-sourced extensions ###"
+			cd $MEDIAWIKI_PATH
+			if composer update --no-dev -o
+				then
+					extension_composer_finalize
+				else
+					echo "### composer update failed during upgrade - composer-sourced extensions may be in an inconsistent state, check manually ###"
+			fi
+	fi
 }
 
 extension_finalize(){
@@ -131,6 +164,93 @@ extension_finalize(){
 	echo "### setting permissions ###"
 	chown -R abc:abc $MEDIAWIKI_EXTENSION_PATH/$extension_name
 	chmod -R 664 $MEDIAWIKI_EXTENSION_PATH/$extension_name
+}
+
+extension_add_composer_type(){
+	package=$1        # e.g. mediawiki/maps
+	version=$2        # e.g. ~14.0
+	extension_name=$3 # e.g. Maps - must match the directory name
+	                   # composer/installers actually creates under
+	                   # extensions/ for this package, used for
+	                   # wfLoadExtension and all bookkeeping
+	mediawiki_check
+	if [ $? = 0 ]
+		then
+			if [ -z "$package" ] || [ -z "$version" ] || [ -z "$extension_name" ]
+				then
+					echo "### package, version, and extension name are all required ###"
+					return 1
+			fi
+			if [ -d $MEDIAWIKI_EXTENSION_PATH/$extension_name ]
+				then
+					echo "### $extension_name already exists, removing first ###"
+					extension_remove $extension_name
+			fi
+			echo "### ExtensionManager: installing $extension_name extension (composer package $package:$version) ###"
+			cd $MEDIAWIKI_PATH
+			# --no-plugins: this step only edits composer.local.json's text,
+			# it doesn't need any plugin active - without it, adding a
+			# second (or later) composer extension fails once
+			# composer/installers is already present in vendor/ from an
+			# earlier extension, because composer.local.json's own
+			# (otherwise empty) allow-plugins config blocks activating a
+			# plugin that's already installed but not allow-listed there
+			COMPOSER=composer.local.json composer require --no-update --no-plugins "$package:$version"
+			# a partial `composer update $package` is not possible here - no
+			# root-level composer.lock exists (only inside vendor/, a
+			# separately-cloned repo with its own lock) - the only workflow
+			# that actually resolves is a full update, which re-evaluates
+			# the whole dependency graph against the merged
+			# composer.local.json requirements, not just this one package
+			if ! composer update --no-dev -o
+				then
+					echo "### composer update failed - $extension_name was NOT installed, composer.local.json left as-is for inspection ###"
+					return 1
+			fi
+			if [ ! -d $MEDIAWIKI_EXTENSION_PATH/$extension_name ]
+				then
+					echo "### composer update succeeded but $extension_name was not found under extensions/ ###"
+					echo "### check that the extension name matches what $package's own composer.json installs as ###"
+					return 1
+			fi
+			sed -i "$ a \#https://www.mediawiki.org/wiki/Extension:$extension_name" $MEDIAWIKI_PATH/LocalSettings.php
+			sed -i "$ a wfLoadExtension( '$extension_name' );" $MEDIAWIKI_PATH/LocalSettings.php
+			extension_update_install_list_composer "$package" "$version" "$extension_name"
+			extension_composer_finalize "$extension_name"
+	fi
+}
+
+extension_update_install_list_composer(){
+	package=$1
+	version=$2
+	extension_name=$3
+	mkdir -p $EXTENSION_MANAGER_PATH
+	touch $EXTENSION_MANAGER_PATH/INSTALLED_COMPOSER
+	# replace any existing entry for this extension name (re-add / version change)
+	sed -i "\#|${extension_name}\$#d" $EXTENSION_MANAGER_PATH/INSTALLED_COMPOSER
+	echo "${package}|${version}|${extension_name}" >> $EXTENSION_MANAGER_PATH/INSTALLED_COMPOSER
+	chown abc:abc $EXTENSION_MANAGER_PATH/INSTALLED_COMPOSER
+}
+
+extension_composer_finalize(){
+	# $1 (optional) - a single extension dir to chown; if omitted, chowns
+	# every currently-tracked composer extension (used after a bulk
+	# operation like extension_upgrade's full composer update, where many
+	# composer-sourced extensions may have been touched at once)
+	echo "### setting permissions ###"
+	chown -R abc:abc $MEDIAWIKI_PATH/vendor
+	[ -f $MEDIAWIKI_PATH/composer.local.json ] && chown abc:abc $MEDIAWIKI_PATH/composer.local.json
+	if [ ! -z "$1" ]
+		then
+			[ -d $MEDIAWIKI_EXTENSION_PATH/$1 ] && chown -R abc:abc $MEDIAWIKI_EXTENSION_PATH/$1
+		elif [ -f $EXTENSION_MANAGER_PATH/INSTALLED_COMPOSER ]
+			then
+				while IFS='|' read -r c_package c_version c_extension_name
+					do
+						[ -z "$c_extension_name" ] && continue
+						[ -d $MEDIAWIKI_EXTENSION_PATH/$c_extension_name ] && chown -R abc:abc $MEDIAWIKI_EXTENSION_PATH/$c_extension_name
+					done < $EXTENSION_MANAGER_PATH/INSTALLED_COMPOSER
+	fi
 }
 
 extension_list(){
@@ -167,7 +287,23 @@ extension_update_install_list(){
 		then
 			dir_list=$(ls -d */)
 			mkdir -p $EXTENSION_MANAGER_PATH
-			echo $dir_list | tr -s '/ ' '\n' > $EXTENSION_MANAGER_PATH/INSTALLED
+			# composer-sourced extensions also live under this same
+			# directory (composer/installers puts them here) but are NOT
+			# git-managed - they're tracked separately in
+			# INSTALLED_COMPOSER and must be excluded here, otherwise a
+			# later extension_upgrade would try to git-fetch a package that
+			# was never a gerrit repo
+			filtered_list=""
+			for entry in $dir_list
+				do
+					entry_name="${entry%/}"
+					if [ ! -f $EXTENSION_MANAGER_PATH/INSTALLED_COMPOSER ] || \
+						! grep -q "|${entry_name}\$" $EXTENSION_MANAGER_PATH/INSTALLED_COMPOSER
+						then
+							filtered_list="$filtered_list $entry_name"
+					fi
+				done
+			echo $filtered_list | tr -s ' ' '\n' > $EXTENSION_MANAGER_PATH/INSTALLED
 			chown abc:abc $EXTENSION_MANAGER_PATH/INSTALLED
 			return 0
 		else
@@ -222,6 +358,16 @@ extension_bulk_edit_run(){
 				elif [ $command == -$extension_name ]
 					then
 						extension_remove $extension_name
+						sed -i 1d $EXTENSION_MANAGER_PATH/MANAGER
+				# add a composer-based extension: ~package:version:ExtensionName
+				elif [[ "$command" == "~"* ]]
+					then
+						composer_payload="${command#\~}"
+						composer_package="${composer_payload%%:*}"
+						composer_rest="${composer_payload#*:}"
+						composer_version="${composer_rest%%:*}"
+						composer_extname="${composer_rest#*:}"
+						extension_add_composer_type "$composer_package" "$composer_version" "$composer_extname"
 						sed -i 1d $EXTENSION_MANAGER_PATH/MANAGER
 				# update database
 				elif [ $command == updatedb ]

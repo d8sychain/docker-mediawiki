@@ -59,7 +59,7 @@ select_option(){
 # sub menus
 extension_manager_submenu(){
 	submenuL1_option=0
-	until [ $submenuL1_option = 7 ]
+	until [ $submenuL1_option = 8 ]
 		do
 					  ##6     MediaWiki Maintenance     6##
 					  ##8       Extension Manager       8##
@@ -67,11 +67,12 @@ extension_manager_submenu(){
 			load_header
 			echo "1) Add wfLoadExtension Type"
 			echo "2) Add requireExtension Type"
-			echo "3) Remove Extension"
-			echo "4) Bulk Changes"
-			echo "5) Update Database"
-			echo "6) List Installed Extensions"
-			echo "7) Back"
+			echo "3) Add Composer Extension"
+			echo "4) Remove Extension"
+			echo "5) Bulk Changes"
+			echo "6) Update Database"
+			echo "7) List Installed Extensions"
+			echo "8) Back"
 			echo
 			read -p 'Option: ' submenuL1_option
 			echo
@@ -91,6 +92,15 @@ extension_manager_submenu(){
 						;;
 
 						3)
+						echo "Add Composer Extension"
+						read -p 'Enter Packagist package name (e.g. mediawiki/maps): ' composer_package
+						read -p 'Enter version constraint (e.g. ~14.0): ' composer_version
+						read -p 'Enter extension name (must match extensions/ dir it installs as, e.g. Maps): ' composer_extname
+						extension_add_composer_type "$composer_package" "$composer_version" "$composer_extname"
+						press_to_continue
+						;;
+
+						4)
 						echo "Remove Extension"
 						extension_list
 						if [ $? = 0 ] # if list_extension returns 0
@@ -132,23 +142,23 @@ extension_manager_submenu(){
 						press_to_continue
 						;;
 
-						4)
+						5)
 						extension_manager_bulk_submenu
 						;;
 
-						5)
+						6)
 						echo "Update Database"
 						update_db
 						press_to_continue
 						;;
 
-						6)
+						7)
 						echo "List Installed Extensions"
 						extension_list
 						press_to_continue
 						;;
 
-						7)
+						8)
 						;;
 
 						*)
