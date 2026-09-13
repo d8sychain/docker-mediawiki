@@ -33,10 +33,10 @@ RUN \
 		apk add --no-cache --upgrade --virtual=build-dependencies \
 		curl \
 		gnupg \
-		git \
 		tar && \
 	echo "**** install runtime packages ****" && \
 		apk add --no-cache --upgrade \
+		git \
 		nginx \
 		php${PHPV} \
 		php${PHPV}-fpm \
