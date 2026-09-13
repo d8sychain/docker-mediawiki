@@ -85,7 +85,9 @@ for a required manual step on the first hop off a pre-1.35 image.
 - [ImageMagick](https://imagemagick.org/) for thumbnail generation
 - [GNU Diffutils](https://www.gnu.org/software/diffutils/)
 - Configured with [Short URLs](https://www.mediawiki.org/wiki/Manual:Short_URL)
-- [ExtensionManager](#extensionmanager) for adding and removing extension
+- [ExtensionManager](#extensionmanager) for adding and removing extensions, including [Composer-based extensions](#composer-based-extensions), via an interactive terminal menu or a bulk-edit file
+- Optional integrated [MariaDB](#with-integrated-mariadb-single-container) (opt-in, off by default - a separate database container is the default and recommended setup)
+- [Backups](#backups): on-demand or scheduled, covering files/database/assets/config, with restore
 - Supports [SQLite](https://www.sqlite.org/index.html), [MySQL](https://www.mysql.com/), [MariaDB](https://mariadb.com/), [PostgreSQL](https://www.postgresql.org) databases
 - For a complete list of installed packages and thier version see /path/to/store/log/packages.list
 
@@ -232,6 +234,23 @@ docker run --name=mediawiki_wiki \
 -v /path/to/store/mediawiki app data:/config \
 -d d8sychain/mediawiki
 ```
+
+### With Integrated MariaDB (single container)
+
+If you'd rather not run a separate database container, MariaDB can run inside the same container as MediaWiki. This is opt-in and off by default - the split-container setup above (a separate database container) is the recommended, default configuration and is what's actually validated in production.
+
+```
+docker run --name=mediawiki_wiki \
+-p 9090:80 \
+-e PUID=99 \
+-e PGID=100 \
+-e MYSQL_INSTALL_OPTION=true \
+-e MYSQL_ROOT_PASSWORD=root_password \
+-v /path/to/store/mediawiki app data:/config \
+-d d8sychain/mediawiki
+```
+
+When `MYSQL_INSTALL_OPTION=true`, the `mariadb` server package is installed at container start (not baked into the image, so leaving this at its default `false` costs nothing) and MariaDB runs as its own supervised service inside the container, with data stored under `/config/mysql`. Use `localhost` (not a linked container name) as the database host when running the MediaWiki installer.
 
 ### With PostgreSQL
 
@@ -425,6 +444,24 @@ If you add an extension using ExtensionManager and your wiki site won't load, ju
 
 In addition to adding and removing extensions, ExtensionManager can update the database schema, which is needed after adding some extensions.
 
+### Interactive Maintenance Menu
+
+Run `docker exec -it <container_name> maintenance` (or `bash /maintenance`) for an interactive terminal menu covering Extension Manager, Backups, Database, and Services - the same underlying functions as the `MANAGER`-file workflow below, plus one-off actions like restarting a service, viewing logs, or restoring a backup without editing files by hand.
+
+### Composer-Based Extensions
+
+Some extensions (for example [Maps](https://www.mediawiki.org/wiki/Extension:Maps) and [Semantic MediaWiki](https://www.semantic-mediawiki.org/)) are distributed via [Composer](https://getcomposer.org/)/[Packagist](https://packagist.org/) rather than as a standalone git-cloned extension. Add these with the `~` operator: `~package:version:ExtensionName`, where `package` is the Packagist package name, `version` is a Composer version constraint, and `ExtensionName` must exactly match the directory the package installs itself as under `extensions/` (check the extension's own documentation).
+
+```
+~mediawiki/maps:~14.0:Maps
+~mediawiki/semantic-media-wiki:~6.0:SemanticMediaWiki
+updatedb
+```
+
+**Semantic MediaWiki requires >=6.0 for MediaWiki 1.43** - earlier 5.x releases throw a database error (`Identifier must not contain quote, dot or null characters`) on any real query or page deletion, fixed upstream in SMW 6.0.0. This is the extension's own compatibility requirement, not specific to this image - always check an extension's minimum-supported-MediaWiki-version before pinning a Composer constraint.
+
+Composer-based extensions are removed the same way as any other extension (`-ExtensionName`, or the menu's Remove Extension option) - `composer remove` runs automatically to keep `composer.local.json` consistent.
+
 ### Using ExtensionManager
 
 Edit file `/config/ExtensionManager/MANAGER`, add the operator **+**, **\***, or **-** and the extension's name (case sensitive) and/or **updatedb** per line.
@@ -520,6 +557,13 @@ For example:
 +ContactPage
 ```
 
+## Backups
+
+The interactive `maintenance` menu's Backups submenu can back up MediaWiki's files, database, uploaded assets, and configuration files (individually or all together), list/remove/rename existing backups, and restore one. Backups land under `/config/backup` by default.
+
+Database backups work whether the database is a separate container (the default), integrated in the same container (`MYSQL_INSTALL_OPTION=true`), or SQLite - the connection details are read straight from `LocalSettings.php`, so no extra configuration is needed.
+
+A backup can also be triggered automatically on container start via the `BACKUP_MEDIAWIKI` environment variable (`wiki`, `data`, `assets`, or `all`; `false` by default), and on a cron schedule - edit the schedule from the menu's Backups -> Edit Backup Schedule option, or directly at `/etc/cron-backups.d/`.
 
 ## Upgrading
 

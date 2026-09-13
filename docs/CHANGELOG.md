@@ -5,6 +5,22 @@ CHANGELOG
 	* If you want the newest version of a config file, delete or rename your old file first.
 	* Then restart the container and the new config file will be added, then you can merge any customizations that you may have made in your original file.
 
+## 2026-09-13 - 1.35.14 / 1.39.17 / 1.43.9-db2 - Interactive maintenance menu, Composer extensions, integrated MariaDB, backups
+
+### Added
+* Interactive `maintenance` terminal menu (`docker exec -it <container> maintenance`) covering Extension Manager, Backups, Database, and Services - ported from this project's own long-unmerged `edge` branch and adapted onto the modernized codebase (edge was still on the old EOL 1.33.2 base, only its architecture was ported, not its MediaWiki version)
+* Composer-based extension support (e.g. [Maps](https://www.mediawiki.org/wiki/Extension:Maps), [Semantic MediaWiki](https://www.semantic-mediawiki.org/)) via a new `~package:version:ExtensionName` bulk-edit operator and a matching interactive menu option - see [Composer-Based Extensions](../README.md#composer-based-extensions)
+* Optional integrated MariaDB (`MYSQL_INSTALL_OPTION=true`) for running the database in the same container - opt-in, off by default; a separate database container remains the default and recommended setup
+* Backups: on-demand and cron-scheduled, covering MediaWiki files/database/assets/config, with restore - works against a separate database container, an integrated one, or SQLite
+
+### Fixed
+* `git` was installed only as a build-time dependency and purged from the final image - `ExtensionManager`'s `git clone`/`git ls-remote` calls need it at runtime, so adding or removing a git-based extension (via the bulk MANAGER file or the new menu) has been silently non-functional on every previously published 1.35/1.39/1.43 image since the prior modernization release. Never caught because jsrwiki (this project's own reference deployment) doesn't use any extensions beyond the bundled defaults.
+* Composer's own apk-packaged wrapper script hardcoded whichever bare PHP happened to be bundled in the base image at build time (e.g. PHP 8.4/8.5), completely bypassing this image's actual configured PHP version and its extensions - composer could not resolve any real dependency graph until fixed. This was previously latent since the only existing composer call (TemplateStyles' own `composer install`) never needed any PHP extensions its narrow per-extension composer.json didn't already require.
+
+### Notes for Composer-extension users
+* Adding a Composer extension resolves the entire dependency graph (a full `composer update --no-dev -o`, not a scoped update - MediaWiki's git-install method has no root-level lock file to support scoping), so unrelated package versions may shift when you add one.
+* **Semantic MediaWiki requires >=6.0 for MediaWiki 1.43** - 5.x releases throw a database error on any real query or page deletion under 1.43's core; this is upstream SMW's own compatibility boundary, not specific to this image.
+
 ## 2026-09-12 - 1.35 / 1.39 / 1.43-db1 - Major modernization
 
 * Rebuilt on the current LinuxServer.io Alpine baseimage (s6-overlay v3) instead of the EOL `lsiobase/nginx:3.10`
