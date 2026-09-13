@@ -1,0 +1,20 @@
+
+# variables
+lock_message="This wiki is currently being backed up. Please check back shortly."
+
+# functions
+update_db(){
+echo "### updating database schema ###"
+cd $MEDIAWIKI_PATH/maintenance
+php update.php
+}
+
+lock_db(){
+echo "### locking database ###"
+echo $lock_message > $MEDIAWIKI_PATH/LOCK
+}
+
+unlock_db(){
+echo "### unlocking database ###"
+> $MEDIAWIKI_PATH/LOCK
+}

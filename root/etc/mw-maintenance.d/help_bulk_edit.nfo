@@ -1,0 +1,27 @@
+Bulk Edit Help
+
+Use option 1 to edit the list of extension changes to be made using nano.
+
+Add a command ( + , * , - ) and the extension name
+Use + for adding an extension that uses `wfLoadExtension( 'ExtensionName' );` in LocalSetting.php
+Use * for adding an extension that uses `require_once "$IP/extensions/ExtensionName/ExtensionName.php";` in LocalSetting.php
+Use - to remove an extension
+
+See the extension documentation at https://www.mediawiki.org/wiki/Extension:ExtensionName
+to know which command to use when adding an extension.
+
+In Addition
+Use updatedb to run the update script to update the database schema, needed after adding some extensions.
+
+For example:
+
+ +ContactPage
+ +AddMessages
+ -Poem
+ *ConfirmAccount
+ +Echo
+ updatedb
+
+To exit Ctrl+X then Y and Enter to save.
+
+Use option 2 to run the list of extension changes to be made.

@@ -64,6 +64,7 @@ RUN \
 		diffutils \
 		ffmpeg \
 		imagemagick \
+		nano \
 		poppler-utils \
 		python3 \
 		lua5.1 \
