@@ -70,9 +70,15 @@ if [ ! -d $MEDIAWIKI_PATH/extensions/TemplateStyles/vendor ]
 fi
 
 # set permissions for mediawiki default directory for file uploads
-chmod -R a=rw $MEDIAWIKI_PATH/images
+# (capital X, not lowercase x: applies execute only to directories, not
+# files - plain "a=rw" strips the execute/traversal bit from every
+# directory too, which breaks FileBackend/FSLockManager's own mkdir calls
+# for hashed upload subdirs and lock files with a "could not create
+# directory"/"could not open lock file" error, since traversing or
+# creating entries in a directory requires its execute bit)
+chmod -R a=rwX $MEDIAWIKI_PATH/images
 
 # set ownership and permissions for mediawiki to use docker volume /assets directory for file uploads
 chown -R abc:abc /assets
-chmod -R a=rw /assets
+chmod -R a=rwX /assets
 
