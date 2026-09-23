@@ -5,6 +5,15 @@ CHANGELOG
 	* If you want the newest version of a config file, delete or rename your old file first.
 	* Then restart the container and the new config file will be added, then you can merge any customizations that you may have made in your original file.
 
+## 2026-09-22 - 1.35.14 / 1.39.17 / 1.43.9-db3 - Upload/thumbnail permissions, VisualEditor fixes
+
+### Fixed
+* `15-config-wiki`'s `chmod -R a=rw` on `$MEDIAWIKI_PATH/images` and `/assets` stripped the execute/traversal bit from every directory (not just files), breaking `FileBackend`/`FSLockManager`'s own directory creation for hashed upload subdirectories and lock files. Since this script runs on every container start, this silently broke file uploads and produced "Error creating thumbnail: File missing" for any file added since the last restart - not a one-time issue, this recurred on every restart. Fixed with `a=rwX` (capital X applies execute only to directories).
+* `git submodule update --init` (non-recursive) during the image build leaves VisualEditor's own nested submodule (`lib/ve`, its standalone core editing library, declared in VisualEditor's own `.gitmodules`) as an empty directory. Broke VisualEditor at runtime with a `ResourceLoader` "package file not found" error and no visible error in the browser UI. Fixed with `--recursive`.
+* nginx's `/var/lib/nginx/tmp` (FastCGI/proxy/client_body temp buffers) was owned by the `nginx` apk package's own system user at mode 700, but this image's `nginx.conf` runs workers as `abc` - blocking `abc` from even traversing into the directory. Broke `load.php` (and therefore VisualEditor's JS/CSS, since it's loaded via ResourceLoader) with "Permission denied reading upstream". Fixed by chowning it to `abc:abc` at build time.
+
+All three found and fixed against real jsrwiki production data. Note: this release does not change the underlying MediaWiki versions (still 1.35.14 / 1.39.17 / 1.43.9) - it's a bugfix rebuild of the same versions.
+
 ## 2026-09-13 - 1.35.14 / 1.39.17 / 1.43.9-db2 - Interactive maintenance menu, Composer extensions, integrated MariaDB, backups
 
 ### Added
