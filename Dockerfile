@@ -95,6 +95,16 @@ RUN \
 	echo "**** make php-fpm unix socket path ****" && \
 		mkdir -p /var/run/php-fpm/ && \
 		chown abc:abc /var/run/php-fpm/ && \
+	echo "**** fix nginx tmp dir ownership for the abc user ****" && \
+	# the nginx apk package creates /var/lib/nginx/tmp owned by its own
+	# "nginx" system user at mode 700 - but nginx.conf runs workers as
+	# "abc" (this image's convention), and mode 700 blocks everyone but
+	# the literal owner, so abc can't even traverse into the directory to
+	# reach the fastcgi/proxy/client_body temp subdirs it needs to write
+	# to. Without this, PHP-FPM responses (including load.php, which is
+	# what VisualEditor's JS/CSS depends on) fail with "Permission denied"
+	# reading the fastcgi temp file.
+		chown -R abc:abc /var/lib/nginx && \
 	echo "**** point bare 'php' at the version this image actually configured ****" && \
 	# the baseimage itself ships its own bare /usr/bin/php (a different,
 	# newer PHP release than the version explicitly installed above, with
@@ -133,7 +143,14 @@ RUN \
 			cd $MEDIAWIKI_STORAGE_PATH && \
 			git clone \
 				https://gerrit.wikimedia.org/r/mediawiki/vendor.git && \
-			git submodule update --init && \
+			git submodule update --init --recursive && \
+		# --recursive matters here: some bundled extensions (VisualEditor is
+		# the confirmed case) declare their own nested submodule (VisualEditor's
+		# lib/ve, the standalone VE core library) inside their .gitmodules.
+		# A non-recursive `--init` pulls the extension itself but leaves that
+		# inner submodule as an empty directory, which breaks ResourceLoader
+		# at runtime with "package file not found" for files that live inside
+		# it - a silent failure with no error surfaced in the browser UI.
 			rm -rf .git* && \
 # mediawiki additional extensions - not core submodules, fetched separately.
 # `--branch` resolves transparently to a tag when the live branch has been
